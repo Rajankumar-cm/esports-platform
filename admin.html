@@ -288,6 +288,178 @@
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  // ========================================
+// ADMIN SECURITY - HARDCODED AUTH
+// ========================================
+const ADMIN_PHONE = '8112387896';
+const ADMIN_PASS = 'SUN@dar#9450';
+
+function checkAdminAccess() {
+  const granted = sessionStorage.getItem('adminGranted');
+  if (granted === 'yes') return true;
+  return false;
+}
+
+function showAdminLoginScreen() {
+  document.body.innerHTML = `
+    <div style="
+      min-height:100vh;
+      background:#0a0a0f;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      font-family:'Segoe UI',sans-serif;
+    ">
+      <div style="
+        width:100%;max-width:380px;
+        background:rgba(255,255,255,0.04);
+        border:1px solid rgba(255,255,255,0.08);
+        border-radius:20px;
+        padding:35px 25px;
+      ">
+        <div style="text-align:center;margin-bottom:30px;">
+          <div style="font-size:2.5rem;margin-bottom:10px;">🛡️</div>
+          <h1 style="
+            font-size:1.4rem;font-weight:900;
+            background:linear-gradient(135deg,#ef4444,#f59e0b);
+            -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+          ">ADMIN ACCESS</h1>
+          <p style="color:#6b7280;font-size:0.8rem;margin-top:5px;">
+            Restricted Area — Authorized Only
+          </p>
+        </div>
+
+        <div id="adminLoginError" style="
+          display:none;
+          background:rgba(239,68,68,0.1);
+          border:1px solid rgba(239,68,68,0.3);
+          border-radius:10px;
+          padding:10px 14px;
+          color:#fca5a5;
+          font-size:0.82rem;
+          margin-bottom:15px;
+          text-align:center;
+        "></div>
+
+        <div style="margin-bottom:15px;">
+          <label style="display:block;color:#9ca3af;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">
+            Phone Number
+          </label>
+          <input 
+            type="tel" 
+            id="adminPhoneInput"
+            placeholder="10-digit number"
+            maxlength="10"
+            style="
+              width:100%;padding:13px 16px;
+              background:rgba(255,255,255,0.06);
+              border:1px solid rgba(255,255,255,0.1);
+              border-radius:12px;color:white;
+              font-size:0.95rem;outline:none;
+            "
+          />
+        </div>
+
+        <div style="margin-bottom:25px;">
+          <label style="display:block;color:#9ca3af;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">
+            Password
+          </label>
+          <div style="position:relative;">
+            <input 
+              type="password" 
+              id="adminPassInput"
+              placeholder="Admin password"
+              onkeydown="if(event.key==='Enter')verifyAdminLogin()"
+              style="
+                width:100%;padding:13px 16px;
+                background:rgba(255,255,255,0.06);
+                border:1px solid rgba(255,255,255,0.1);
+                border-radius:12px;color:white;
+                font-size:0.95rem;outline:none;
+              "
+            />
+          </div>
+        </div>
+
+        <button 
+          onclick="verifyAdminLogin()"
+          id="adminLoginBtn"
+          style="
+            width:100%;padding:14px;
+            background:linear-gradient(135deg,#ef4444,#f59e0b);
+            border:none;border-radius:12px;
+            color:white;font-size:1rem;font-weight:700;
+            cursor:pointer;letter-spacing:1px;
+          "
+        >
+          🔐 VERIFY & ENTER
+        </button>
+
+        <p style="text-align:center;color:#374151;font-size:0.7rem;margin-top:20px;">
+          Unauthorized access is prohibited
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+let loginAttempts = 0;
+
+function verifyAdminLogin() {
+  const phone = document.getElementById('adminPhoneInput')?.value.trim();
+  const pass = document.getElementById('adminPassInput')?.value;
+  const errEl = document.getElementById('adminLoginError');
+  const btn = document.getElementById('adminLoginBtn');
+
+  // Lockout after 5 failed attempts
+  if (loginAttempts >= 5) {
+    errEl.style.display = 'block';
+    errEl.textContent = '🔒 Too many attempts. Tab band karein aur dobara kholein.';
+    btn.disabled = true;
+    return;
+  }
+
+  if (phone === ADMIN_PHONE && pass === ADMIN_PASS) {
+    sessionStorage.setItem('adminGranted', 'yes');
+    sessionStorage.setItem('adminTime', Date.now().toString());
+    // Reload page to show actual admin panel
+    window.location.reload();
+  } else {
+    loginAttempts++;
+    errEl.style.display = 'block';
+    errEl.textContent = `❌ Phone ya password galat hai. (${5 - loginAttempts} attempts bache)`;
+    document.getElementById('adminPassInput').value = '';
+    
+    // Short delay to prevent brute force
+    btn.disabled = true;
+    setTimeout(() => { btn.disabled = false; }, 2000);
+  }
+}
+
+// Session timeout - 8 hours
+function checkSessionTimeout() {
+  const adminTime = sessionStorage.getItem('adminTime');
+  if (adminTime) {
+    const elapsed = Date.now() - parseInt(adminTime);
+    const eightHours = 8 * 60 * 60 * 1000;
+    if (elapsed > eightHours) {
+      sessionStorage.removeItem('adminGranted');
+      sessionStorage.removeItem('adminTime');
+      return false;
+    }
+  }
+  return true;
+}
+
+// Run security check immediately
+(function() {
+  if (!checkAdminAccess() || !checkSessionTimeout()) {
+    showAdminLoginScreen();
+    // Stop all further JS execution for this page
+    throw new Error('Admin auth required');
+  }
+})();
 <script>
 const SUPABASE_URL='https://djohisxyahugicokwpox.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqb2hpc3h5YWh1Z2ljb2t3cG94Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNDg3MjYsImV4cCI6MjA5NTkyNDcyNn0.yw1ouxc9eIPAU_ZO1GMHUpZ4bW6ddzrwllb4GmtrVjI';
