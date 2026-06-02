@@ -98,7 +98,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     document.getElementById('dName').textContent = p.full_name||'-';
     document.getElementById('dPhone').textContent = p.phone||'-';
     document.getElementById('dFFID').textContent = p.free_fire_id||'-';
-    document.getElementById('statBalance').textContent = '₹'+parseFloat(p.wallet_balance||0).toFixed(0);
+    document.getElementById('statBalance').textContent = 'Rs.'+parseFloat(p.wallet_balance||0).toFixed(0);
     document.getElementById('dJoined').textContent = new Date(p.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
   }
   const {data:regs} = await sb.from('registrations').select('id').eq('user_id',session.user.id);
