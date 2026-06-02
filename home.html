@@ -52,7 +52,7 @@
     .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#0d0d1a;border-top:1px solid rgba(255,255,255,0.08);display:flex;z-index:200;}
     .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 5px;cursor:pointer;color:#6b7280;font-size:0.65rem;text-decoration:none;transition:color 0.2s;}
     .nav-item.active{color:#f59e0b;}
-    .nav-icon{font-size:1.4rem;margin-bottom:2px;}
+    .nav-icon{font-size:1.2rem;margin-bottom:2px;}
     .loading{text-align:center;padding:40px;color:#6b7280;}
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;align-items:flex-end;justify-content:center;}
     .modal-overlay.show{display:flex;}
@@ -117,9 +117,17 @@
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
- <a class="nav-item active" href="home.html"><div class="nav-icon">&#127968;</div>Home</a>
-<a class="nav-item" href="wallet.html"><div class="nav-icon">&#128176;</div>Wallet</a>
-<a class="nav-item" href="profile.html"><div class="nav-icon">&#128100;</div>Profile</a>
+<nav class="bottom-nav">
+  <a class="nav-item active" href="home.html">
+    <i class="fas fa-home nav-icon"></i>Home
+  </a>
+  <a class="nav-item" href="wallet.html">
+    <i class="fas fa-wallet nav-icon"></i>Wallet
+  </a>
+  <a class="nav-item" href="profile.html">
+    <i class="fas fa-user nav-icon"></i>Profile
+  </a>
+</nav>
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
