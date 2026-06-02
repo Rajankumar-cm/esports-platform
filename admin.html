@@ -873,7 +873,12 @@ async function saveQR(){
   showToast('✓ QR URL saved! Users ko ab dikhega.','success');
 }
 
-async function adminLogout(){await sb.auth.signOut();window.location.href='index.html';}
+async function adminLogout() {
+  sessionStorage.removeItem('adminGranted');
+  sessionStorage.removeItem('adminTime');
+  await sb.auth.signOut();
+  window.location.href = 'index.html';
+}
 
 function showToast(msg,type){
   const t=document.getElementById('toast');
