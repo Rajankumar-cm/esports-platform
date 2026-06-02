@@ -193,7 +193,7 @@ async function loadTransactions(){
         <div class="txn-date">${date}${t.utr_number?` • UTR: ${t.utr_number}`:''}</div>
       </div>
       <div class="txn-right">
-        <div class="txn-amount ${amtClass}">${sign}&#8377;${parseFloat(t.amount).toFixed(2)}</div>
+        <div class="txn-amount ${amtClass}">${sign}Rs.;${parseFloat(t.amount).toFixed(2)}</div>
         <span class="txn-status status-${t.status}">${t.status}</span>
       </div>
     </div>`;
