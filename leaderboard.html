@@ -116,6 +116,7 @@ async function loadLeaderboard(type,el){
   document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));
   if(el)el.classList.add('active');
   const sortCol=type==='wins'?'total_wins':type==='played'?'total_played':'wallet_balance';
+  const {data}=await sb.from('profiles').select('full_name,total_wins,free_fire_id').eq('is_admin',false).eq('is_blocked',false).order('total_wins',{ascending:false}).limit(3);
   const {data}=await sb.from('profiles')
   .select('id,full_name,free_fire_id,total_wins,total_played,wallet_balance')
   .eq('is_admin',false)
