@@ -515,8 +515,20 @@ function drawWheel(){
 
 async function doSpin(){
   if(isSpinning)return;
-  const last=userProfile?.last_spin;
-  if(last&&(Date.now()-new Date(last).getTime())<24*60*60*1000){showToast('Kal dobara aao!','error');return;}
+  // Fresh check from DB
+  const {data:freshProfile}=await sb.from('profiles').select('last_spin').eq('id',currentUser.id).single();
+  const lastSpin=freshProfile?.last_spin;
+  if(lastSpin){
+    const diff=Date.now()-new Date(lastSpin).getTime();
+    if(diff<24*60*60*1000){
+      const hrs=Math.floor((24*60*60*1000-diff)/3600000);
+      showToast('Kal dobara aao! '+hrs+'h baad milega.','error');
+      return;
+    }
+  }
+  // Mark spin immediately to prevent double click
+  await sb.from('profiles').update({last_spin:new Date().toISOString()}).eq('id',currentUser.id);
+  userProfile.last_spin=new Date().toISOString();
   isSpinning=true;
   document.getElementById('spinBtn').disabled=true;
   document.getElementById('spinResult').style.display='none';
@@ -538,16 +550,14 @@ async function doSpin(){
         resultEl.textContent='🎉 Rs.'+winPrize+' Jeetay!';resultEl.style.display='block';
         infoEl.textContent='Wallet mein add ho gaya!';
         const newBal=parseFloat(userProfile.wallet_balance||0)+winPrize;
-        sb.from('profiles').update({wallet_balance:newBal,last_spin:new Date().toISOString()}).eq('id',currentUser.id);
+        sb.from('profiles').update({wallet_balance:newBal}).eq('id',currentUser.id);
         sb.from('transactions').insert({user_id:currentUser.id,type:'admin_adjustment',amount:winPrize,status:'approved',note:'Daily Spin Win'});
-        userProfile.wallet_balance=newBal;userProfile.last_spin=new Date().toISOString();
+        userProfile.wallet_balance=newBal;
         document.getElementById('walletBal').textContent=newBal.toFixed(2);
         showToast('🎉 Rs.'+winPrize+' jeeta!','success');
       }else{
         resultEl.textContent='😢 Kuch nahi mila';resultEl.style.display='block';
         infoEl.textContent='Kal phir try karo!';
-        sb.from('profiles').update({last_spin:new Date().toISOString()}).eq('id',currentUser.id);
-        userProfile.last_spin=new Date().toISOString();
       }
       checkSpin();
       document.getElementById('spinBtn').disabled=false;
