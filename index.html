@@ -257,10 +257,11 @@ setTimeout(()=>{
 window.addEventListener('load',()=>{
   const params=new URLSearchParams(window.location.search);
   const ref=params.get('ref');
-  if(ref){
+  if(ref&&ref.length>=6){
     document.getElementById('referralCode').value=ref.toUpperCase();
-    checkReferral(ref);
+    checkReferral(ref.toUpperCase());
     switchTab('signup');
+    showAlert('Referral code apply ho gaya! Signup karo aur bonus pao.','success');
   }
 });
 
@@ -322,6 +323,20 @@ async function handleLogin(){
     }
   }catch(e){showAlert('Kuch galat hua. Dobara try karein.','error');}
   btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-in-alt"></i> LOGIN';
+}
+  function shareRef(){
+  const code=userProfile?.referral_code||'';
+  // Direct URL - no navigator.share issue
+  const url='https://esports-platform-pink.vercel.app/index.html?ref='+code;
+  const msg='FF Arena pe join karo aur tournaments khelo!\nMera referral code: '+code+'\n'+url;
+  if(navigator.share){
+    navigator.share({title:'FF Arena',text:msg,url}).catch(()=>{
+      navigator.clipboard.writeText(msg);
+      showToast('Link copied!','success');
+    });
+  }else{
+    navigator.clipboard.writeText(msg).then(()=>showToast('Referral link copied! Share karo.','success'));
+  }
 }
 
 async function handleSignup(){
