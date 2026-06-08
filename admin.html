@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FF Arena - Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    :root{--primary:#f59e0b;--secondary:#ef4444;--bg:#0a0a0f;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);}
+    body{background:var(--bg);color:white;font-family:'Segoe UI',sans-serif;padding-bottom:80px;}
+    .topbar{background:linear-gradient(135deg,#1a0a2e,#0d0d1a);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+    .topbar h1{font-size:1.1rem;font-weight:900;background:linear-gradient(135deg,var(--secondary),var(--primary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .admin-badge{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:20px;padding:4px 10px;font-size:0.72rem;color:var(--secondary);font-weight:700;}
+    .tabs{display:flex;background:rgba(0,0,0,0.4);margin:12px;border-radius:14px;padding:4px;gap:3px;overflow-x:auto;}
+    .tabs::-webkit-scrollbar{display:none;}
+    .tab-btn{flex:1;padding:8px 4px;border:none;background:transparent;color:#6b7280;border-radius:10px;cursor:pointer;font-size:0.65rem;font-weight:600;white-space:nowrap;transition:all 0.3s;}
+    .tab-btn.active{background:linear-gradient(135deg,var(--secondary),var(--primary));color:white;}
+    .tab-content{display:none;padding:0 12px;}
+    .tab-content.active{display:block;}
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:all 0.2s;}
+    .stat-card:hover{border-color:rgba(245,158,11,0.4);transform:scale(1.02);}
+    .stat-val{font-size:1.6rem;font-weight:900;color:var(--primary);}
+    .stat-lbl{font-size:0.62rem;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
+    .stat-hint{font-size:0.58rem;color:var(--primary);margin-top:2px;}
+    .sec-title{font-size:0.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9ca3af;margin:14px 0 10px;}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:8px;}
+    .card-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+    .card-name{font-size:0.88rem;font-weight:600;margin-bottom:3px;}
+    .card-sub{font-size:0.72rem;color:#9ca3af;}
+    .card-utr{font-size:0.7rem;color:#6b7280;margin-top:2px;}
+    .card-amount{font-size:1rem;font-weight:700;color:var(--primary);}
+    .btn-row{display:flex;gap:7px;margin-top:9px;}
+    .btn-approve{flex:1;padding:9px;background:rgba(34,197,94,0.15);border:1px solid #22c55e;border-radius:9px;color:#22c55e;font-size:0.8rem;font-weight:700;cursor:pointer;}
+    .btn-approve:hover{background:rgba(34,197,94,0.3);}
+    .btn-reject{flex:1;padding:9px;background:rgba(239,68,68,0.1);border:1px solid var(--secondary);border-radius:9px;color:var(--secondary);font-size:0.8rem;font-weight:700;cursor:pointer;}
+    .status-badge{padding:2px 8px;border-radius:7px;font-size:0.68rem;font-weight:700;}
+    .status-pending{background:rgba(245,158,11,0.15);color:var(--primary);}
+    .status-approved{background:rgba(34,197,94,0.15);color:#22c55e;}
+    .status-rejected{background:rgba(239,68,68,0.15);color:var(--secondary);}
+    .user-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:8px;}
+    .user-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+    .user-name{font-size:0.9rem;font-weight:600;}
+    .user-meta{font-size:0.7rem;color:#9ca3af;margin-bottom:7px;}
+    .user-bal{font-size:0.85rem;color:var(--primary);font-weight:700;}
+    .user-actions{display:flex;gap:5px;flex-wrap:wrap;}
+    .btn-sm{padding:5px 10px;border-radius:7px;font-size:0.7rem;font-weight:600;cursor:pointer;}
+    .btn-add{background:rgba(34,197,94,0.15);border:1px solid #22c55e;color:#22c55e;}
+    .btn-deduct{background:rgba(245,158,11,0.1);border:1px solid var(--primary);color:var(--primary);}
+    .btn-block{background:rgba(239,68,68,0.1);border:1px solid var(--secondary);color:var(--secondary);}
+    .btn-unblock{background:rgba(34,197,94,0.1);border:1px solid #22c55e;color:#22c55e;}
+    .btn-notify{background:rgba(59,130,246,0.1);border:1px solid #3b82f6;color:#3b82f6;}
+    .blocked-tag{background:rgba(239,68,68,0.15);color:var(--secondary);padding:2px 6px;border-radius:6px;font-size:0.65rem;margin-left:4px;}
+    label{display:block;color:#9ca3af;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+    .form-group{margin-bottom:12px;}
+    input,select,textarea{width:100%;padding:10px 13px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:10px;color:white;font-size:0.88rem;outline:none;}
+    input:focus,select:focus,textarea:focus{border-color:var(--primary);}
+    select option{background:#1a1a2e;}
+    textarea{resize:vertical;min-height:75px;}
+    .btn-primary{width:100%;padding:12px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;border-radius:12px;color:white;font-weight:700;font-size:0.9rem;cursor:pointer;margin-top:5px;}
+    .t-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:8px;overflow:hidden;}
+    .t-card.hidden-t{opacity:0.4;border-style:dashed;}
+    .t-banner{width:100%;height:75px;object-fit:cover;border-radius:8px;margin-bottom:8px;}
+    .t-title{font-size:0.92rem;font-weight:700;margin-bottom:4px;}
+    .t-meta{font-size:0.7rem;color:#9ca3af;margin-bottom:7px;}
+    .t-stats{display:flex;gap:7px;margin-bottom:8px;flex-wrap:wrap;}
+    .t-stat{background:rgba(255,255,255,0.06);border-radius:7px;padding:5px 9px;font-size:0.7rem;text-align:center;}
+    .t-stat span{display:block;color:var(--primary);font-weight:700;}
+    .room-info-box{background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.2);border-radius:7px;padding:7px;margin-bottom:7px;font-size:0.72rem;color:#9ca3af;}
+    .prize-info-box{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);border-radius:7px;padding:7px;margin-bottom:7px;font-size:0.72rem;color:#fcd34d;white-space:pre-line;}
+    .action-row{display:flex;gap:5px;flex-wrap:wrap;}
+    .btn-xs{padding:5px 9px;border-radius:7px;font-size:0.68rem;font-weight:600;cursor:pointer;}
+    .btn-live{background:rgba(34,197,94,0.15);border:1px solid #22c55e;color:#22c55e;}
+    .btn-end{background:rgba(107,114,128,0.15);border:1px solid #6b7280;color:#9ca3af;}
+    .btn-win{background:rgba(245,158,11,0.15);border:1px solid var(--primary);color:var(--primary);}
+    .btn-room{background:rgba(59,130,246,0.1);border:1px solid #3b82f6;color:#3b82f6;}
+    .btn-edit-t{background:rgba(168,85,247,0.1);border:1px solid #a855f7;color:#a855f7;}
+    .btn-hide{background:rgba(107,114,128,0.1);border:1px solid #6b7280;color:#9ca3af;}
+    .btn-del{background:rgba(239,68,68,0.1);border:1px solid var(--secondary);color:var(--secondary);}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.94);z-index:300;align-items:flex-end;justify-content:center;}
+    .modal-overlay.show{display:flex;}
+    .modal-sheet{background:#111827;border-radius:20px 20px 0 0;padding:22px;width:100%;max-width:500px;border-top:1px solid var(--border);max-height:88vh;overflow-y:auto;}
+    .modal-sheet h3{font-size:1rem;font-weight:700;margin-bottom:14px;color:var(--primary);}
+    .btn-close-m{width:100%;padding:11px;background:transparent;border:1px solid var(--border);border-radius:12px;color:#9ca3af;font-size:0.88rem;cursor:pointer;margin-top:8px;}
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#0d0d1a;border-top:1px solid var(--border);display:flex;z-index:200;}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 5px;color:#6b7280;font-size:0.6rem;text-decoration:none;cursor:pointer;}
+    .nav-item.active{color:var(--secondary);}
+    .nav-item i{font-size:1.2rem;margin-bottom:2px;}
+    .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1f2937;border:1px solid var(--border);border-radius:12px;padding:10px 18px;font-size:0.82rem;z-index:600;display:none;white-space:nowrap;max-width:92vw;}
+    .toast.show{display:block;}
+    .toast.success{border-color:#22c55e;color:#86efac;}
+    .toast.error{border-color:var(--secondary);color:#fca5a5;}
+    .empty{text-align:center;padding:28px;color:#4b5563;font-size:0.82rem;}
+    .settings-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
+    .settings-lbl{font-size:0.72rem;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:700;}
+    .img-preview{width:100%;max-height:130px;object-fit:cover;border-radius:8px;margin-top:8px;}
+    .prize-preview{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);border-radius:8px;padding:10px;margin-top:7px;display:none;}
+    .info-note{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:9px 11px;font-size:0.75rem;color:#93c5fd;line-height:1.5;margin-bottom:12px;}
+    .kyc-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:8px;}
+    .kyc-item .ki-name{font-size:0.88rem;font-weight:600;margin-bottom:3px;}
+    .kyc-item .ki-meta{font-size:0.72rem;color:#9ca3af;margin-bottom:8px;}
+    .banner-item-admin{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+    .banner-thumb{width:70px;height:45px;object-fit:cover;border-radius:7px;flex-shrink:0;background:#1a0a2e;}
+    .banner-info{flex:1;}
+    .banner-title{font-size:0.85rem;font-weight:600;margin-bottom:2px;}
+    .banner-link{font-size:0.7rem;color:#6b7280;}
+    .winner-entry{display:flex;gap:8px;margin-bottom:10px;align-items:flex-start;}
+    .winner-pos-badge{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0;margin-top:2px;}
+    .add-winner-btn{width:100%;padding:9px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:9px;color:#22c55e;font-size:0.82rem;cursor:pointer;margin-top:6px;}
+    .remove-winner-btn{padding:5px 8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:7px;color:var(--secondary);font-size:0.68rem;cursor:pointer;margin-top:2px;flex-shrink:0;}
+  </style>
+</head>
+<body>
+
+<div id="adminPanelContent" style="display:none;">
+  <div class="topbar">
+    <h1><i class="fas fa-shield-alt"></i> Admin Panel</h1>
+    <span class="admin-badge"><i class="fas fa-crown"></i> ADMIN</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('dashboard',this)"><i class="fas fa-chart-bar"></i> Home</button>
+    <button class="tab-btn" onclick="switchTab('deposits',this)"><i class="fas fa-arrow-down"></i> Dep</button>
+    <button class="tab-btn" onclick="switchTab('withdrawals',this)"><i class="fas fa-arrow-up"></i> With</button>
+    <button class="tab-btn" onclick="switchTab('tournaments',this)"><i class="fas fa-trophy"></i> Match</button>
+    <button class="tab-btn" onclick="switchTab('users',this)"><i class="fas fa-users"></i> Users</button>
+    <button class="tab-btn" onclick="switchTab('banners',this)"><i class="fas fa-image"></i> Banners</button>
+    <button class="tab-btn" onclick="switchTab('promos',this)"><i class="fas fa-tag"></i> Promos</button>
+    <button class="tab-btn" onclick="switchTab('kyc',this)"><i class="fas fa-id-card"></i> KYC</button>
+    <button class="tab-btn" onclick="switchTab('settings',this)"><i class="fas fa-cog"></i> Settings</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="tab-content active" id="tab-dashboard">
+    <div class="stats-grid">
+      <div class="stat-card" onclick="switchTabById('deposits')">
+        <div class="stat-val" id="sdDep">0</div><div class="stat-lbl">Pending Deposits</div>
+        <div class="stat-hint"><i class="fas fa-hand-pointer"></i> Tap</div>
+      </div>
+      <div class="stat-card" onclick="switchTabById('withdrawals')">
+        <div class="stat-val" id="sdWith">0</div><div class="stat-lbl">Pending Withdrawals</div>
+        <div class="stat-hint"><i class="fas fa-hand-pointer"></i> Tap</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="sdUsers">0</div><div class="stat-lbl">Total Users</div>
+      </div>
+      <div class="stat-card" onclick="switchTabById('tournaments')">
+        <div class="stat-val" id="sdTours">0</div><div class="stat-lbl">Tournaments</div>
+        <div class="stat-hint"><i class="fas fa-hand-pointer"></i> Tap</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="sdKYC">0</div><div class="stat-lbl">Pending KYC</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="sdRevenue">Rs.0</div><div class="stat-lbl">Total Entry Fees</div>
+      </div>
+    </div>
+    <div class="sec-title">Recent Deposits</div>
+    <div id="recentDep"><div class="empty">Loading...</div></div>
+    <!-- BROADCAST -->
+    <div class="sec-title">Broadcast Message</div>
+    <div class="card">
+      <div class="form-group"><label>Title</label><input type="text" id="bcTitle" placeholder="e.g. New Tournament Alert!"/></div>
+      <div class="form-group"><label>Message</label><textarea id="bcMsg" placeholder="Sabhi users ko bhejne ka message..."></textarea></div>
+      <button class="btn-primary" onclick="sendBroadcast()"><i class="fas fa-bullhorn"></i> Send to All Users</button>
+    </div>
+  </div>
+
+  <!-- DEPOSITS -->
+  <div class="tab-content" id="tab-deposits">
+    <div class="sec-title">Pending Deposits</div>
+    <div id="depList"><div class="empty">Loading...</div></div>
+  </div>
+
+  <!-- WITHDRAWALS -->
+  <div class="tab-content" id="tab-withdrawals">
+    <div class="sec-title">Pending Withdrawals</div>
+    <div id="withList"><div class="empty">Loading...</div></div>
+  </div>
+
+  <!-- TOURNAMENTS -->
+  <div class="tab-content" id="tab-tournaments">
+    <div class="sec-title" id="tFormTitle">Create Tournament</div>
+    <div class="card">
+      <input type="hidden" id="editTId"/>
+      <div class="form-group"><label>Title</label><input type="text" id="tTitle" placeholder="e.g. FF Sunday Battle"/></div>
+      <div class="form-group">
+        <label>Banner Image URL</label>
+        <input type="text" id="tBanner" placeholder="https://i.imgur.com/..." oninput="previewImg(this.value)"/>
+        <small style="color:#6b7280;font-size:0.7rem;display:block;margin-top:3px;">imgbb.com par upload karo</small>
+        <div id="bannerPreview" style="display:none;"><img id="bannerImg" class="img-preview" src="" onerror="this.parentElement.style.display='none'"/></div>
+      </div>
+      <div class="form-group">
+        <label>Game</label>
+        <select id="tGame"><option>Free Fire</option><option>BGMI</option><option>COD Mobile</option><option>Valorant</option><option>PUBG PC</option></select>
+      </div>
+      <div class="form-group"><label>Map</label><input type="text" id="tMap" placeholder="Bermuda, Kalahari..."/></div>
+      <div class="form-group"><label>Mode</label>
+        <select id="tMode"><option>Solo</option><option>Duo</option><option>Squad</option></select>
+      </div>
+      <div class="form-group"><label>Match Date & Time</label><input type="datetime-local" id="tDate"/></div>
+      <div class="form-group"><label>Entry Fee (Rs.)</label><input type="number" id="tFee" placeholder="50"/></div>
+      <div class="form-group"><label>Prize Pool (Rs.)</label><input type="number" id="tPrize" placeholder="500"/></div>
+      <div class="form-group">
+        <label>Prize Distribution (Users ko dikhega)</label>
+        <textarea id="tPrizeD" placeholder="1st: Rs. 300&#10;2nd: Rs. 150&#10;3rd: Rs. 50" oninput="updatePrizePreview()"></textarea>
+        <div class="prize-preview" id="prizePreview"></div>
+      </div>
+      <div class="form-group"><label>Max Slots</label><input type="number" id="tSlots" placeholder="100"/></div>
+      <div class="form-group"><label>Rules</label><textarea id="tRules" placeholder="1. No emulator&#10;2. No hacks&#10;3. Fair play"></textarea></div>
+      <button class="btn-primary" id="tSaveBtn" onclick="saveTournament()"><i class="fas fa-plus"></i> Create Tournament</button>
+      <button class="btn-close-m" id="tCancelBtn" style="display:none;" onclick="cancelTEdit()">Cancel Edit</button>
+    </div>
+    <div class="sec-title">All Tournaments</div>
+    <div id="tList"><div class="empty">Loading...</div></div>
+  </div>
+
+  <!-- USERS -->
+  <div class="tab-content" id="tab-users">
+    <div class="sec-title">User Management</div>
+    <input type="text" id="userSearch" placeholder="Search name or phone..." oninput="searchUsers()" style="margin-bottom:10px;"/>
+    <div id="userList"><div class="empty">Loading...</div></div>
+  </div>
+
+  <!-- BANNERS -->
+  <div class="tab-content" id="tab-banners">
+    <div class="sec-title">Add Promo Banner</div>
+    <div class="card">
+      <div class="form-group"><label>Banner Title</label><input type="text" id="bnTitle" placeholder="e.g. New Tournament Alert!"/></div>
+      <div class="form-group"><label>Image URL</label><input type="text" id="bnImage" placeholder="https://i.imgur.com/..." oninput="previewBannerAdmin(this.value)"/>
+        <div id="bnImgPreview" style="display:none;margin-top:6px;"><img id="bnImgThumb" class="img-preview" src="" onerror="this.parentElement.style.display='none'"/></div>
+      </div>
+      <div class="form-group"><label>Click Link (URL)</label><input type="text" id="bnLink" placeholder="https://t.me/... ya wallet.html"/></div>
+      <div class="form-group"><label>Sort Order (1=first)</label><input type="number" id="bnOrder" value="1" placeholder="1"/></div>
+      <button class="btn-primary" onclick="addBanner()"><i class="fas fa-plus"></i> Add Banner</button>
+    </div>
+    <div class="sec-title">Active Banners</div>
+    <div id="bannerList"><div class="empty">Loading...</div></div>
+  </div>
+
+  <!-- PROMOS -->
+  <div class="tab-content" id="tab-promos">
+    <div class="sec-title">Create Promo Code</div>
+    <div class="card">
+      <div class="form-group"><label>Code</label><input type="text" id="pcCode" placeholder="e.g. WELCOME50" style="text-transform:uppercase;"/></div>
+      <div class="form-group"><label>Bonus Amount (Rs.)</label><input type="number" id="pcAmount" placeholder="50"/></div>
+      <div class="form-group"><label>Max Uses</label><input type="number" id="pcMaxUses" value="100" placeholder="100"/></div>
+      <div class="form-group"><label>Expires At (Optional)</label><input type="datetime-local" id="pcExpiry"/></div>
+      <button class="btn-primary" onclick="createPromo()"><i class="fas fa-tag"></i> Create Promo Code</button>
+    </div>
+    <div class="sec-title">All Promo Codes</div>
+    <div id="promoList"><div class="empty">Loading...</div></div>
+  </div>
+
+  <!-- KYC -->
+  <div class="tab-content" id="tab-kyc">
+    <div class="sec-title">Pending KYC Requests</div>
+    <div id="kycList"><div class="empty">Loading...</div></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="tab-content" id="tab-settings">
+    <div class="sec-title">Payment Settings</div>
+    <div class="settings-box">
+      <div class="settings-lbl">UPI ID</div>
+      <input type="text" id="sUPI" placeholder="yourname@upi"/>
+      <button class="btn-primary" style="margin-top:8px;" onclick="saveUPI()"><i class="fas fa-save"></i> Save UPI</button>
+    </div>
+    <div class="settings-box">
+      <div class="settings-lbl">QR Code Image URL</div>
+      <input type="text" id="sQR" placeholder="https://i.imgur.com/yourqr.png" oninput="previewQR(this.value)"/>
+      <div id="qrPreview" style="text-align:center;padding:8px;"></div>
+      <button class="btn-primary" onclick="saveQR()"><i class="fas fa-save"></i> Save QR</button>
+    </div>
+    <div class="sec-title">Account</div>
+    <button class="btn-primary" style="background:rgba(239,68,68,0.15);border:1px solid var(--secondary);color:var(--secondary);" onclick="adminLogout()">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+  </div>
+
+  <!-- MODALS -->
+  <div class="modal-overlay" id="winnersModal">
+    <div class="modal-sheet">
+      <h3><i class="fas fa-trophy"></i> Set Winners & Prizes</h3>
+      <div id="winnersForm"></div>
+      <button class="add-winner-btn" onclick="addWinnerRow()"><i class="fas fa-plus"></i> Add More Winners</button>
+      <button class="btn-primary" style="margin-top:10px;" onclick="submitWinners()"><i class="fas fa-coins"></i> Distribute Prizes</button>
+      <button class="btn-close-m" onclick="closeModal('winnersModal')">Cancel</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="balModal">
+    <div class="modal-sheet">
+      <h3 id="balTitle">Adjust Balance</h3>
+      <div class="form-group"><label>Amount (Rs.)</label><input type="number" id="balAmt" placeholder="Amount"/></div>
+      <div class="form-group"><label>Note</label><input type="text" id="balNote" placeholder="Reason..."/></div>
+      <button class="btn-primary" id="balBtn" onclick="confirmBal()">Confirm</button>
+      <button class="btn-close-m" onclick="closeModal('balModal')">Cancel</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="roomModal">
+    <div class="modal-sheet">
+      <h3><i class="fas fa-key"></i> Set Room Details</h3>
+      <div class="info-note"><i class="fas fa-info-circle"></i> Sirf joined players ko match se 5 min pehle dikhega.</div>
+      <div class="form-group"><label>Room ID</label><input type="text" id="rId" placeholder="Room ID"/></div>
+      <div class="form-group"><label>Room Password</label><input type="text" id="rPass" placeholder="Password"/></div>
+      <button class="btn-primary" onclick="saveRoom()"><i class="fas fa-save"></i> Save Room</button>
+      <button class="btn-close-m" onclick="closeModal('roomModal')">Cancel</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="notifyModal">
+    <div class="modal-sheet">
+      <h3 id="notifyModalTitle">Send Notification</h3>
+      <div class="form-group"><label>Title</label><input type="text" id="ntTitle" placeholder="Notification title"/></div>
+      <div class="form-group"><label>Message</label><textarea id="ntMsg" placeholder="Message..."></textarea></div>
+      <button class="btn-primary" onclick="sendUserNotif()"><i class="fas fa-bell"></i> Send</button>
+      <button class="btn-close-m" onclick="closeModal('notifyModal')">Cancel</button>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a class="nav-item active" href="admin.html"><i class="fas fa-shield-alt"></i>Admin</a>
+    <a class="nav-item" href="home.html"><i class="fas fa-home"></i>User View</a>
+    <a class="nav-item" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i>Logout</a>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://djohisxyahugicokwpox.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqb2hpc3h5YWh1Z2ljb2t3cG94Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNDg3MjYsImV4cCI6MjA5NTkyNDcyNn0.yw1ouxc9eIPAU_ZO1GMHUpZ4bW6ddzrwllb4GmtrVjI';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const ADMIN_PHONE='8112387896',ADMIN_PASS='SUN@dar#9450';
+let loginAttempts=0,adminUser=null,selTour4Win=null,balUser=null,balType=null,selTour4Room=null,notifUserId=null,allUsersCache=[];
+
+function showLogin(){
+  document.getElementById('adminPanelContent').style.display='none';
+  document.body.insertAdjacentHTML('beforeend',`
+  <div id="loginScreen" style="min-height:100vh;background:#0a0a0f;display:flex;align-items:center;justify-content:center;padding:20px;font-family:'Segoe UI',sans-serif;">
+    <div style="width:100%;max-width:360px;background:rgba(255,255,255,0.04);border:1px solid rgba(239,68,68,0.2);border-radius:20px;padding:32px 24px;">
+      <div style="text-align:center;margin-bottom:22px;"><div style="font-size:3rem;">🛡️</div>
+        <h2 style="font-size:1.3rem;font-weight:900;background:linear-gradient(135deg,#ef4444,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-top:8px;">ADMIN PANEL</h2>
+        <p style="color:#6b7280;font-size:0.76rem;margin-top:3px;">Restricted Access Only</p>
+      </div>
+      <div id="lErr" style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:9px;padding:9px;color:#fca5a5;font-size:0.78rem;text-align:center;margin-bottom:12px;"></div>
+      <div style="margin-bottom:12px;"><label style="display:block;color:#9ca3af;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Phone</label>
+        <input type="tel" id="lPhone" maxlength="10" placeholder="10-digit number" style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:white;font-size:0.9rem;outline:none;"/></div>
+      <div style="margin-bottom:20px;"><label style="display:block;color:#9ca3af;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Password</label>
+        <input type="password" id="lPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()" style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:white;font-size:0.9rem;outline:none;"/></div>
+      <button id="lBtn" onclick="doLogin()" style="width:100%;padding:13px;background:linear-gradient(135deg,#ef4444,#f59e0b);border:none;border-radius:12px;color:white;font-size:0.95rem;font-weight:700;cursor:pointer;"><i class="fas fa-lock"></i> LOGIN</button>
+      <p style="text-align:center;color:#374151;font-size:0.65rem;margin-top:14px;">Unauthorized access is prohibited</p>
+    </div>
+  </div>`);
+}
+
+async function doLogin(){
+  const phone=document.getElementById('lPhone')?.value.trim();
+  const pass=document.getElementById('lPass')?.value;
+  const err=document.getElementById('lErr'),btn=document.getElementById('lBtn');
+  if(!err||!btn)return;
+  if(loginAttempts>=5){err.style.display='block';err.textContent='Too many attempts. Refresh karein.';return;}
+  if(phone!==ADMIN_PHONE||pass!==ADMIN_PASS){
+    loginAttempts++;err.style.display='block';
+    err.textContent='Galat credentials. ('+(5-loginAttempts)+' attempts bache)';
+    document.getElementById('lPass').value='';
+    btn.disabled=true;setTimeout(()=>{if(btn)btn.disabled=false;},2000);return;
+  }
+  btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Verifying...';btn.disabled=true;
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({email:ADMIN_PHONE+'@ffarena.in',password:ADMIN_PASS});
+    if(error)throw error;
+    const {data:p}=await sb.from('profiles').select('is_admin').eq('id',data.user.id).single();
+    if(!p?.is_admin){await sb.auth.signOut();throw new Error('Admin access nahi hai. SQL se is_admin=TRUE karein.');}
+    sessionStorage.setItem('ag','yes');sessionStorage.setItem('at',Date.now().toString());
+    adminUser=data.user;
+    document.getElementById('loginScreen')?.remove();
+    document.getElementById('adminPanelContent').style.display='block';
+    loadDashboard();loadSettings();
+  }catch(e){err.style.display='block';err.textContent='Error: '+e.message;btn.innerHTML='<i class="fas fa-lock"></i> LOGIN';btn.disabled=false;}
+}
+
+(async function init(){
+  const ag=sessionStorage.getItem('ag'),at=parseInt(sessionStorage.getItem('at')||'0');
+  const valid=ag==='yes'&&(Date.now()-at)<(8*60*60*1000);
+  const {data:{session}}=await sb.auth.getSession();
+  if(session&&valid){
+    const {data:p}=await sb.from('profiles').select('is_admin').eq('id',session.user.id).single();
+    if(p?.is_admin){adminUser=session.user;document.getElementById('adminPanelContent').style.display='block';loadDashboard();loadSettings();return;}
+  }
+  if(session){
+    const {data:p}=await sb.from('profiles').select('is_admin').eq('id',session.user.id).single();
+    if(p?.is_admin){sessionStorage.setItem('ag','yes');sessionStorage.setItem('at',Date.now().toString());adminUser=session.user;document.getElementById('adminPanelContent').style.display='block';loadDashboard();loadSettings();return;}
+    await sb.auth.signOut();
+  }
+  showLogin();
+})();
+
+function switchTab(tab,el){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  const m={dashboard:loadDashboard,deposits:loadDeposits,withdrawals:loadWithdrawals,tournaments:loadTours,users:loadUsers,banners:loadBanners,promos:loadPromos,kyc:loadKYC,settings:loadSettings};
+  if(m[tab])m[tab]();
+}
+function switchTabById(t){
+  let f=null;document.querySelectorAll('.tab-btn').forEach(b=>{if(b.getAttribute('onclick')?.includes("'"+t+"'"))f=b;});switchTab(t,f);
+}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function showToast(m,t){const el=document.getElementById('toast');el.textContent=m;el.className='toast '+t+' show';setTimeout(()=>el.classList.remove('show'),4000);}
+
+async function loadDashboard(){
+  try{
+    const [{data:u},{data:tr},{data:d},{data:w},{data:k},{data:fees}]=await Promise.all([
+      sb.from('profiles').select('id'),sb.from('tournaments').select('id'),
+      sb.from('transactions').select('id').eq('type','deposit').eq('status','pending'),
+      sb.from('transactions').select('id').eq('type','withdrawal').eq('status','pending'),
+      sb.from('kyc_requests').select('id').eq('status','pending'),
+      sb.from('transactions').select('amount').eq('type','tournament_fee').eq('status','approved')
+    ]);
+    document.getElementById('sdUsers').textContent=u?.length||0;
+    document.getElementById('sdTours').textContent=tr?.length||0;
+    document.getElementById('sdDep').textContent=d?.length||0;
+    document.getElementById('sdWith').textContent=w?.length||0;
+    document.getElementById('sdKYC').textContent=k?.length||0;
+    const rev=(fees||[]).reduce((s,f)=>s+parseFloat(f.amount||0),0);
+    document.getElementById('sdRevenue').textContent='Rs.'+rev.toFixed(0);
+    const {data:rd}=await sb.from('transactions').select('*,profiles(full_name,phone)').eq('type','deposit').eq('status','pending').order('created_at',{ascending:false}).limit(5);
+    const el=document.getElementById('recentDep');
+    if(!rd?.length){el.innerHTML='<div class="empty">Koi pending deposit nahi.</div>';return;}
+    el.innerHTML=rd.map(t=>depCardHtml(t,true)).join('');
+  }catch(e){showToast('Load error: '+e.message,'error');}
+}
+
+async function loadDeposits(){
+  const {data}=await sb.from('transactions').select('*,profiles(full_name,phone)').eq('type','deposit').eq('status','pending').order('created_at',{ascending:false});
+  const el=document.getElementById('depList');
+  if(!data?.length){el.innerHTML='<div class="empty">Koi pending deposit nahi.</div>';return;}
+  el.innerHTML=data.map(t=>depCardHtml(t,true)).join('');
+}
+function depCardHtml(t,sa=false){
+  const date=new Date(t.created_at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  return `<div class="card" id="dep-${t.id}">
+    <div class="card-row">
+      <div><div class="card-name">${t.profiles?.full_name||'User'}</div><div class="card-sub">${t.profiles?.phone||''} • ${date}</div><div class="card-utr">UTR: <strong style="color:white">${t.utr_number||'N/A'}</strong></div></div>
+      <div><div class="card-amount">Rs.${t.amount}</div><span class="status-badge status-${t.status}">${t.status}</span></div>
+    </div>
+    ${sa?`<div class="btn-row">
+      <button class="btn-approve" onclick="approveDeposit('${t.id}','${t.user_id}',${t.amount})"><i class="fas fa-check"></i> Approve</button>
+      <button class="btn-reject" onclick="rejectTxn('${t.id}','dep-${t.id}','deposit')"><i class="fas fa-times"></i> Reject</button>
+    </div>`:''}
+  </div>`;
+}
+async function approveDeposit(txnId,uid,amt){
+  try{
+    const {data:p}=await sb.from('profiles').select('wallet_balance').eq('id',uid).single();
+    await sb.from('profiles').update({wallet_balance:parseFloat(p.wallet_balance||0)+parseFloat(amt)}).eq('id',uid);
+    await sb.from('transactions').update({status:'approved',updated_at:new Date().toISOString()}).eq('id',txnId);
+    await sb.from('notifications').insert({user_id:uid,title:'Deposit Approved!',message:'Rs.'+amt+' aapke wallet mein add ho gaya.',type:'deposit'});
+    document.getElementById('dep-'+txnId)?.remove();
+    showToast('Approved! Rs.'+amt+' added.','success');
+    const c=document.getElementById('sdDep');if(c)c.textContent=Math.max(0,(parseInt(c.textContent)||0)-1);
+  }catch(e){showToast('Error: '+e.message,'error');}
+}
+
+async function loadWithdrawals(){
+  const {data}=await sb.from('transactions').select('*,profiles(full_name,phone,wallet_balance)').eq('type','withdrawal').eq('status','pending').order('created_at',{ascending:false});
+  const el=document.getElementById('withList');
+  if(!data?.length){el.innerHTML='<div class="empty">Koi pending withdrawal nahi.</div>';return;}
+  el.innerHTML=data.map(t=>{
+    const date=new Date(t.created_at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    return `<div class="card" id="with-${t.id}">
+      <div class="card-row">
+        <div><div class="card-name">${t.profiles?.full_name||'User'}</div><div class="card-sub">${t.profiles?.phone||''} • ${date}</div>
+        <div class="card-utr">UPI: <strong style="color:white">${t.upi_id||'N/A'}</strong></div>
+        <div class="card-utr">Wallet: Rs.${parseFloat(t.profiles?.wallet_balance||0).toFixed(2)}</div></div>
+        <div><div class="card-amount">Rs.${t.amount}</div></div>
+      </div>
+      <div style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);border-radius:7px;padding:7px;margin:7px 0;font-size:0.72rem;color:#fcd34d;">Pehle manually UPI pe Rs.${t.amount} bhejein, phir Approve.</div>
+      <div class="btn-row">
+        <button class="btn-approve" onclick="approveWith('${t.id}','${t.user_id}',${t.amount})"><i class="fas fa-check"></i> Approve</button>
+        <button class="btn-reject" onclick="rejectTxn('${t.id}','with-${t.id}','withdrawal')"><i class="fas fa-times"></i> Reject</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function approveWith(txnId,uid,amt){
+  try{
+    const {data:p}=await sb.from('profiles').select('wallet_balance').eq('id',uid).single();
+    const nb=parseFloat(p.wallet_balance||0)-parseFloat(amt);
+    if(nb<0)return showToast('Insufficient balance!','error');
+    await sb.from('profiles').update({wallet_balance:nb}).eq('id',uid);
+    await sb.from('transactions').update({status:'approved',updated_at:new Date().toISOString()}).eq('id',txnId);
+    await sb.from('notifications').insert({user_id:uid,title:'Withdrawal Approved!',message:'Rs.'+amt+' aapki UPI pe bhej diya gaya.',type:'withdrawal'});
+    document.getElementById('with-'+txnId)?.remove();
+    showToast('Withdrawal approved!','success');
+    const c=document.getElementById('sdWith');if(c)c.textContent=Math.max(0,(parseInt(c.textContent)||0)-1);
+  }catch(e){showToast('Error: '+e.message,'error');}
+}
+async function rejectTxn(txnId,cardId,type){
+  await sb.from('transactions').update({status:'rejected',updated_at:new Date().toISOString()}).eq('id',txnId);
+  document.getElementById(cardId)?.remove();
+  showToast('Rejected.','error');
+  const c=document.getElementById(type==='deposit'?'sdDep':'sdWith');
+  if(c)c.textContent=Math.max(0,(parseInt(c.textContent)||0)-1);
+}
+
+// TOURNAMENTS
+function previewImg(url){const b=document.getElementById('bannerPreview'),i=document.getElementById('bannerImg');if(url){b.style.display='block';i.src=url;}else b.style.display='none';}
+function updatePrizePreview(){
+  const v=document.getElementById('tPrizeD').value.trim(),p=document.getElementById('prizePreview');
+  if(!v){p.style.display='none';return;}
+  p.style.display='block';
+  p.innerHTML='<div style="font-size:0.68rem;color:var(--primary);font-weight:700;margin-bottom:5px;">PREVIEW:</div>'+
+    v.split('\n').filter(l=>l.trim()).map(l=>`<div style="font-size:0.78rem;color:#d1d5db;padding:2px 0;">${l}</div>`).join('');
+}
+
+async function loadTours(){
+  const {data}=await sb.from('tournaments').select('*').order('created_at',{ascending:false});
+  const el=document.getElementById('tList');
+  if(!data?.length){el.innerHTML='<div class="empty">Koi tournament nahi.</div>';return;}
+  el.innerHTML=data.map(t=>{
+    const date=new Date(t.match_date).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    const ih=t.is_hidden||false;
+    const sc=t.status==='live'?'approved':t.status==='upcoming'?'pending':'rejected';
+    return `<div class="t-card ${ih?'hidden-t':''}">
+      ${t.banner_url?`<img src="${t.banner_url}" class="t-banner" onerror="this.style.display='none'"/>` :''}
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
+        <div class="t-title">${t.title}${ih?' <span style="color:#6b7280;font-size:0.65rem">[Hidden]</span>':''}</div>
+        <span class="status-badge status-${sc}">${t.status}</span>
+      </div>
+      <div class="t-meta">${t.game_name||'Free Fire'} • ${t.map_name} • ${t.mode} • ${date}</div>
+      <div class="t-stats">
+        <div class="t-stat">Entry<span>Rs.${t.entry_fee}</span></div>
+        <div class="t-stat">Prize<span>Rs.${t.prize_pool}</span></div>
+        <div class="t-stat">Slots<span>${t.filled_slots||0}/${t.max_slots}</span></div>
+      </div>
+      ${t.prize_details?`<div class="prize-info-box">${t.prize_details}</div>`:''}
+      ${t.room_id?`<div class="room-info-box"><i class="fas fa-key" style="color:#22c55e;margin-right:5px;"></i>Room: <strong style="color:white">${t.room_id}</strong> | Pass: <strong style="color:white">${t.room_password||'N/A'}</strong></div>`:''}
+      <div class="action-row">
+        <button class="btn-xs btn-edit-t" onclick="editTour('${t.id}')"><i class="fas fa-edit"></i> Edit</button>
+        ${t.status==='upcoming'?`<button class="btn-xs btn-live" onclick="setTStatus('${t.id}','live')"><i class="fas fa-play"></i> Live</button>`:''}
+        ${t.status==='live'?`<button class="btn-xs btn-end" onclick="setTStatus('${t.id}','completed')"><i class="fas fa-flag"></i> End</button>`:''}
+        ${t.status==='completed'?`<button class="btn-xs btn-win" onclick="openWinners('${t.id}','${t.title.replace(/'/g,"\\'")}',${t.prize_pool},'${(t.prize_details||'').replace(/\n/g,'|').replace(/'/g,"\\'")}')"><i class="fas fa-trophy"></i> Winners</button>`:''}
+        <button class="btn-xs btn-room" onclick="openRoom('${t.id}','${t.room_id||''}','${t.room_password||''}')"><i class="fas fa-key"></i> Room</button>
+        <button class="btn-xs btn-hide" onclick="toggleHide('${t.id}',${!ih})"><i class="fas fa-${ih?'eye':'eye-slash'}"></i> ${ih?'Show':'Hide'}</button>
+        <button class="btn-xs btn-del" onclick="deleteTour('${t.id}')"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function saveTournament(){
+  const eid=document.getElementById('editTId').value;
+  const v=(id)=>document.getElementById(id).value.trim();
+  const n=(id)=>parseFloat(document.getElementById(id).value)||0;
+  if(!v('tTitle')||!v('tMap')||!v('tDate')||!n('tFee')||!n('tPrize')||!parseInt(document.getElementById('tSlots').value))
+    return showToast('Zaroori fields bharein.','error');
+  const payload={title:v('tTitle'),banner_url:v('tBanner'),game_name:document.getElementById('tGame').value,map_name:v('tMap'),mode:document.getElementById('tMode').value,match_date:new Date(v('tDate')).toISOString(),entry_fee:n('tFee'),prize_pool:n('tPrize'),prize_details:v('tPrizeD'),max_slots:parseInt(document.getElementById('tSlots').value),rules:v('tRules')};
+  try{
+    if(eid){await sb.from('tournaments').update(payload).eq('id',eid);showToast('Updated!','success');cancelTEdit();}
+    else{await sb.from('tournaments').insert({...payload,status:'upcoming',filled_slots:0,is_hidden:false});showToast('Created!','success');['tTitle','tBanner','tMap','tDate','tFee','tPrize','tPrizeD','tSlots','tRules'].forEach(id=>document.getElementById(id).value='');document.getElementById('bannerPreview').style.display='none';document.getElementById('prizePreview').style.display='none';}
+    loadTours();
+  }catch(e){showToast('Error: '+e.message,'error');}
+}
+
+async function editTour(id){
+  const {data:t}=await sb.from('tournaments').select('*').eq('id',id).single();
+  if(!t)return;
+  document.getElementById('editTId').value=t.id;
+  document.getElementById('tTitle').value=t.title;
+  document.getElementById('tBanner').value=t.banner_url||'';
+  document.getElementById('tGame').value=t.game_name||'Free Fire';
+  document.getElementById('tMap').value=t.map_name;
+  document.getElementById('tMode').value=t.mode;
+  const d=new Date(t.match_date),pad=n=>String(n).padStart(2,'0');
+  document.getElementById('tDate').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  document.getElementById('tFee').value=t.entry_fee;
+  document.getElementById('tPrize').value=t.prize_pool;
+  document.getElementById('tPrizeD').value=t.prize_details||'';
+  document.getElementById('tSlots').value=t.max_slots;
+  document.getElementById('tRules').value=t.rules||'';
+  if(t.banner_url)previewImg(t.banner_url);
+  updatePrizePreview();
+  document.getElementById('tSaveBtn').innerHTML='<i class="fas fa-save"></i> Update Tournament';
+  document.getElementById('tCancelBtn').style.display='block';
+  document.getElementById('tFormTitle').textContent='Edit Tournament';
+  document.getElementById('tTitle').scrollIntoView({behavior:'smooth'});
+  showToast('Edit mode!','success');
+}
+function cancelTEdit(){
+  document.getElementById('editTId').value='';
+  ['tTitle','tBanner','tMap','tDate','tFee','tPrize','tPrizeD','tSlots','tRules'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('tSaveBtn').innerHTML='<i class="fas fa-plus"></i> Create Tournament';
+  document.getElementById('tCancelBtn').style.display='none';
+  document.getElementById('tFormTitle').textContent='Create Tournament';
+  document.getElementById('bannerPreview').style.display='none';
+  document.getElementById('prizePreview').style.display='none';
+}
+async function setTStatus(id,status){await sb.from('tournaments').update({status}).eq('id',id);showToast('Status: '+status,'success');loadTours();}
+async function toggleHide(id,hide){await sb.from('tournaments').update({is_hidden:hide}).eq('id',id);showToast(hide?'Hidden!':'Visible!','success');loadTours();}
+async function deleteTour(id){
+  if(!confirm('Delete karna chahte ho?'))return;
+  await sb.from('tournaments').delete().eq('id',id);
+  showToast('Deleted.','error');loadTours();
+}
+
+// ROOM
+function openRoom(tId,rId='',rPass=''){selTour4Room=tId;document.getElementById('rId').value=rId;document.getElementById('rPass').value=rPass;document.getElementById('roomModal').classList.add('show');}
+async function saveRoom(){
+  const rId=document.getElementById('rId').value.trim(),rPass=document.getElementById('rPass').value.trim();
+  if(!rId)return showToast('Room ID dalein.','error');
+  await sb.from('tournaments').update({room_id:rId,room_password:rPass}).eq('id',selTour4Room);
+  showToast('Room saved!','success');closeModal('roomModal');loadTours();
+}
+
+// WINNERS - UNLIMITED
+let winnerRows=0;
+function openWinners(tId,tTitle,prizePool,prizeDetailsRaw=''){
+  selTour4Win={id:tId,title:tTitle,prize_pool:prizePool};
+  const pd=prizeDetailsRaw.replace(/\|/g,'\n');
+  winnerRows=0;
+  document.getElementById('winnersForm').innerHTML=`
+    <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:9px;padding:11px;margin-bottom:14px;">
+      <div style="font-size:0.85rem;font-weight:700;color:white;margin-bottom:3px;">${tTitle}</div>
+      <div style="font-size:0.75rem;color:var(--primary);">Total Prize: Rs.${prizePool}</div>
+      ${pd?`<div style="font-size:0.72rem;color:#9ca3af;margin-top:7px;white-space:pre-line;border-top:1px solid rgba(255,255,255,0.05);padding-top:7px;">${pd}</div>`:''}
+    </div>
+    <p style="color:#9ca3af;font-size:0.78rem;margin-bottom:12px;"><i class="fas fa-info-circle"></i> Winner ka phone number aur prize dalein.</p>
+    <div id="winnerRows"></div>`;
+  addWinnerRow();addWinnerRow();addWinnerRow();
+  document.getElementById('winnersModal').classList.add('show');
+}
+function addWinnerRow(){
+  winnerRows++;
+  const pos=winnerRows;
+  const medals=['🥇','🥈','🥉'];
+  const medalEl=medals[pos-1]||`#${pos}`;
+  const container=document.getElementById('winnerRows');
+  const div=document.createElement('div');
+  div.className='winner-entry';div.id='wr-'+pos;
+  div.innerHTML=`
+    <div class="winner-pos-badge">${medalEl}</div>
+    <div style="flex:1">
+      <input type="tel" maxlength="10" placeholder="Phone (10 digit)" id="wPhone${pos}" style="margin-bottom:5px;"/>
+      <input type="number" placeholder="Prize Rs." id="wPrize${pos}"/>
+    </div>
+    <button class="remove-winner-btn" onclick="document.getElementById('wr-${pos}').remove()"><i class="fas fa-times"></i></button>`;
+  container.appendChild(div);
+}
+function closeWinnersModal(){closeModal('winnersModal');}
+async function submitWinners(){
+  let count=0;
+  const rows=document.querySelectorAll('#winnerRows .winner-entry');
+  for(let i=0;i<rows.length;i++){
+    const pos=rows[i].id.replace('wr-','');
+    const phone=document.getElementById('wPhone'+pos)?.value.trim();
+    const prize=parseFloat(document.getElementById('wPrize'+pos)?.value||0);
+    if(!phone&&!prize)continue;
+    if(!phone||phone.length!==10){showToast('Row '+(i+1)+': Valid phone dalein','error');continue;}
+    if(!prize||prize<=0){showToast('Row '+(i+1)+': Prize dalein','error');continue;}
+    const {data:profile}=await sb.from('profiles').select('id,wallet_balance').eq('phone',phone).single();
+    if(!profile){showToast('Phone '+phone+' nahi mila!','error');continue;}
+    await sb.from('profiles').update({wallet_balance:parseFloat(profile.wallet_balance||0)+prize,total_wins:((profile.total_wins||0)+1)}).eq('id',profile.id);
+    await sb.from('winners').insert({tournament_id:selTour4Win.id,user_id:profile.id,position:i+1,prize_amount:prize});
+    await sb.from('transactions').insert({user_id:profile.id,type:'prize_won',amount:prize,status:'approved',note:'Prize: '+selTour4Win.title+' #'+(i+1)});
+    await sb.from('notifications').insert({user_id:profile.id,title:'Prize Won!',message:'Congratulations! Rs.'+prize+' aapke wallet mein add ho gaya. ('+selTour4Win.title+')',type:'prize'});
+    count++;
+  }
+  if(count>0){showToast(count+' winners ko prizes mile!','success');closeModal('winnersModal');}
+}
+
+// USERS
+async function loadUsers(){
+  const {data}=await sb.from('profiles').select('*').order('created_at',{ascending:false});
+  allUsersCache=data||[];renderUsers(allUsersCache);
+}
+function searchUsers(){const q=document.getElementById('userSearch').value.toLowerCase();renderUsers(!q?allUsersCache:allUsersCache.filter(u=>(u.full_name||'').toLowerCase().includes(q)||(u.phone||'').includes(q)));}
+function renderUsers(users){
+  const el=document.getElementById('userList');
+  if(!users.length){el.innerHTML='<div class="empty">Koi user nahi mila.</div>';return;}
+  el.innerHTML=users.map(u=>`<div class="user-card">
+    <div class="user-top">
+      <div class="user-name">${u.full_name||'Unknown'}${u.is_admin?'<span style="color:var(--primary);font-size:0.65rem;margin-left:4px;">[ADMIN]</span>':''}${u.is_blocked?'<span class="blocked-tag">BLOCKED</span>':''}</div>
+      <div class="user-bal">Rs.${parseFloat(u.wallet_balance||0).toFixed(2)}</div>
+    </div>
+    <div class="user-meta">${u.phone||'-'} | FF: ${u.free_fire_id||'-'} | KYC: ${u.kyc_status||'pending'}</div>
+    <div class="user-actions">
+      <button class="btn-sm btn-add" onclick="openBal('${u.id}','${(u.full_name||'').replace(/'/g,"\\'")}','add')"><i class="fas fa-plus"></i> Add</button>
+      <button class="btn-sm btn-deduct" onclick="openBal('${u.id}','${(u.full_name||'').replace(/'/g,"\\'")}','deduct')"><i class="fas fa-minus"></i> Deduct</button>
+      <button class="btn-sm btn-notify" onclick="openNotify('${u.id}','${(u.full_name||'').replace(/'/g,"\\'")}')"><i class="fas fa-bell"></i> Notify</button>
+      ${u.is_blocked?`<button class="btn-sm btn-unblock" onclick="toggleBlock('${u.id}',false)"><i class="fas fa-unlock"></i> Unblock</button>`:`<button class="btn-sm btn-block" onclick="toggleBlock('${u.id}',true)"><i class="fas fa-ban"></i> Block</button>`}
+    </div>
+  </div>`).join('');
+}
+function openBal(uid,uname,type){
+  balUser=uid;balType=type;
+  document.getElementById('balTitle').textContent=(type==='add'?'Add':'Deduct')+' Balance — '+uname;
+  document.getElementById('balAmt').value='';document.getElementById('balNote').value='';
+  document.getElementById('balBtn').style.background=type==='add'?'linear-gradient(135deg,#22c55e,#16a34a)':'linear-gradient(135deg,#ef4444,#dc2626)';
+  document.getElementById('balModal').classList.add('show');
+}
+async function confirmBal(){
+  const amt=parseFloat(document.getElementById('balAmt').value);
+  const note=document.getElementById('balNote').value.trim();
+  if(!amt||amt<=0)return showToast('Valid amount dalein.','error');
+  const {data:p}=await sb.from('profiles').select('wallet_balance').eq('id',balUser).single();
+  const nb=balType==='add'?parseFloat(p.wallet_balance||0)+amt:parseFloat(p.wallet_balance||0)-amt;
+  if(nb<0)return showToast('Balance negative nahi ho sakta!','error');
+  await sb.from('profiles').update({wallet_balance:nb}).eq('id',balUser);
+  await sb.from('transactions').insert({user_id:balUser,type:'admin_adjustment',amount:amt,status:'approved',note:note||'Admin '+balType});
+  showToast('Rs.'+amt+' '+(balType==='add'?'added':'deducted')+'!','success');
+  closeModal('balModal');loadUsers();
+}
+async function toggleBlock(uid,block){
+  await sb.from('profiles').update({is_blocked:block}).eq('id',uid);
+  showToast(block?'Blocked!':'Unblocked!',block?'error':'success');loadUsers();
+}
+function openNotify(uid,uname){
+  notifUserId=uid;
+  document.getElementById('notifyModalTitle').textContent='Notify — '+uname;
+  document.getElementById('ntTitle').value='';document.getElementById('ntMsg').value='';
+  document.getElementById('notifyModal').classList.add('show');
+}
+async function sendUserNotif(){
+  const title=document.getElementById('ntTitle').value.trim();
+  const msg=document.getElementById('ntMsg').value.trim();
+  if(!title||!msg)return showToast('Title aur message dalein.','error');
+  await sb.from('notifications').insert({user_id:notifUserId,title,message:msg,type:'general'});
+  showToast('Notification bhej diya!','success');closeModal('notifyModal');
+}
+
+// BROADCAST
+async function sendBroadcast(){
+  const title=document.getElementById('bcTitle').value.trim();
+  const msg=document.getElementById('bcMsg').value.trim();
+  if(!title||!msg)return showToast('Title aur message dalein.','error');
+  try{
+    const {data:users}=await sb.from('profiles').select('id').eq('is_blocked',false);
+    const notifs=(users||[]).map(u=>({user_id:u.id,title,message:msg,type:'general'}));
+    if(notifs.length>0){
+      for(let i=0;i<notifs.length;i+=50)await sb.from('notifications').insert(notifs.slice(i,i+50));
+    }
+    await sb.from('broadcast_messages').insert({title,message:msg});
+    showToast('Broadcast bhej diya to '+notifs.length+' users!','success');
+    document.getElementById('bcTitle').value='';document.getElementById('bcMsg').value='';
+  }catch(e){showToast('Error: '+e.message,'error');}
+}
+
+// BANNERS
+async function loadBanners(){
+  const {data}=await sb.from('site_banners').select('*').order('sort_order');
+  const el=document.getElementById('bannerList');
+  if(!data?.length){el.innerHTML='<div class="empty">Koi banner nahi.</div>';return;}
+  el.innerHTML=data.map(b=>`<div class="banner-item-admin">
+    <img class="banner-thumb" src="${b.image_url||''}" onerror="this.style.background='#1a0a2e'" alt=""/>
+    <div class="banner-info">
+      <div class="banner-title">${b.title||'No title'}</div>
+      <div class="banner-link">${b.link_url||'No link'}</div>
+    </div>
+    <div style="display:flex;gap:5px;flex-shrink:0;">
+      <button class="btn-xs ${b.is_active?'btn-hide':'btn-live'}" onclick="toggleBanner('${b.id}',${!b.is_active})">${b.is_active?'Hide':'Show'}</button>
+      <button class="btn-xs btn-del" onclick="deleteBanner('${b.id}')"><i class="fas fa-trash"></i></button>
+    </div>
+  </div>`).join('');
+}
+function previewBannerAdmin(url){const b=document.getElementById('bnImgPreview'),i=document.getElementById('bnImgThumb');if(url){b.style.display='block';i.src=url;}else b.style.display='none';}
+async function addBanner(){
+  const title=document.getElementById('bnTitle').value.trim();
+  const image=document.getElementById('bnImage').value.trim();
+  const link=document.getElementById('bnLink').value.trim();
+  const order=parseInt(document.getElementById('bnOrder').value)||1;
+  if(!title||!image)return showToast('Title aur image URL dalein.','error');
+  await sb.from('site_banners').insert({title,image_url:image,link_url:link,sort_order:order,is_active:true});
+  showToast('Banner add ho gaya!','success');
+  ['bnTitle','bnImage','bnLink'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('bnImgPreview').style.display='none';
+  loadBanners();
+}
+async function toggleBanner(id,active){await sb.from('site_banners').update({is_active:active}).eq('id',id);loadBanners();}
+async function deleteBanner(id){await sb.from('site_banners').delete().eq('id',id);showToast('Deleted.','error');loadBanners();}
+
+// PROMOS
+async function loadPromos(){
+  const {data}=await sb.from('promo_codes').select('*').order('created_at',{ascending:false});
+  const el=document.getElementById('promoList');
+  if(!data?.length){el.innerHTML='<div class="empty">Koi promo code nahi.</div>';return;}
+  el.innerHTML=data.map(p=>`<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+    <div>
+      <div style="font-size:0.9rem;font-weight:700;color:var(--primary);letter-spacing:2px;">${p.code}</div>
+      <div style="font-size:0.72rem;color:#9ca3af;">Rs.${p.bonus_amount} bonus | ${p.used_count}/${p.max_uses} used</div>
+      ${p.expires_at?`<div style="font-size:0.68rem;color:#6b7280;">Expires: ${new Date(p.expires_at).toLocaleDateString('en-IN')}</div>`:''}
+    </div>
+    <div style="display:flex;gap:5px;">
+      <button class="btn-xs ${p.is_active?'btn-hide':'btn-live'}" onclick="togglePromo('${p.id}',${!p.is_active})">${p.is_active?'Disable':'Enable'}</button>
+      <button class="btn-xs btn-del" onclick="deletePromo('${p.id}')"><i class="fas fa-trash"></i></button>
+    </div>
+  </div>`).join('');
+}
+async function createPromo(){
+  const code=document.getElementById('pcCode').value.trim().toUpperCase();
+  const amt=parseFloat(document.getElementById('pcAmount').value);
+  const max=parseInt(document.getElementById('pcMaxUses').value)||100;
+  const expiry=document.getElementById('pcExpiry').value;
+  if(!code||!amt)return showToast('Code aur amount dalein.','error');
+  try{
+    await sb.from('promo_codes').insert({code,bonus_amount:amt,max_uses:max,used_count:0,is_active:true,expires_at:expiry?new Date(expiry).toISOString():null});
+    showToast('Promo code created!','success');
+    ['pcCode','pcAmount','pcExpiry'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('pcMaxUses').value='100';
+    loadPromos();
+  }catch(e){showToast('Error: '+e.message,'error');}
+}
+async function togglePromo(id,active){await sb.from('promo_codes').update({is_active:active}).eq('id',id);loadPromos();}
+async function deletePromo(id){await sb.from('promo_codes').delete().eq('id',id);showToast('Deleted.','error');loadPromos();}
+
+// KYC
+async function loadKYC(){
+  const {data}=await sb.from('kyc_requests').select('*,profiles(full_name,phone)').eq('status','pending').order('submitted_at',{ascending:false});
+  const el=document.getElementById('kycList');
+  if(!data?.length){el.innerHTML='<div class="empty">Koi pending KYC nahi.</div>';return;}
+  el.innerHTML=data.map(k=>`<div class="kyc-item">
+    <div class="ki-name">${k.profiles?.full_name||'User'}</div>
+    <div class="ki-meta">${k.profiles?.phone||'-'} | Submitted: ${new Date(k.submitted_at).toLocaleDateString('en-IN')}</div>
+    <div style="font-size:0.75rem;color:#9ca3af;margin-bottom:8px;">Aadhaar: ${k.aadhaar_number||'N/A'} | PAN: ${k.pan_number||'N/A'}</div>
+    <div class="btn-row">
+      <button class="btn-approve" onclick="approveKYC('${k.id}','${k.user_id}')"><i class="fas fa-check"></i> Approve</button>
+      <button class="btn-reject" onclick="rejectKYC('${k.id}','${k.user_id}')"><i class="fas fa-times"></i> Reject</button>
+    </div>
+  </div>`).join('');
+}
+async function approveKYC(kycId,uid){
+  await sb.from('kyc_requests').update({status:'verified',reviewed_at:new Date().toISOString()}).eq('id',kycId);
+  await sb.from('profiles').update({kyc_status:'verified'}).eq('id',uid);
+  await sb.from('notifications').insert({user_id:uid,title:'KYC Approved!',message:'Aapki KYC verify ho gayi. Ab aap withdraw kar sakte hain.',type:'general'});
+  showToast('KYC approved!','success');loadKYC();
+  const c=document.getElementById('sdKYC');if(c)c.textContent=Math.max(0,(parseInt(c.textContent)||0)-1);
+}
+async function rejectKYC(kycId,uid){
+  await sb.from('kyc_requests').update({status:'rejected',reviewed_at:new Date().toISOString()}).eq('id',kycId);
+  await sb.from('profiles').update({kyc_status:'rejected'}).eq('id',uid);
+  await sb.from('notifications').insert({user_id:uid,title:'KYC Rejected',message:'Aapki KYC reject ho gayi. Sahi documents ke saath dobara submit karein.',type:'general'});
+  showToast('KYC rejected.','error');loadKYC();
+}
+
+// SETTINGS
+async function loadSettings(){
+  try{
+    const {data}=await sb.from('admin_settings').select('*');
+    if(!data)return;
+    const upi=data.find(d=>d.key==='upi_id'),qr=data.find(d=>d.key==='qr_code_url');
+    if(upi)document.getElementById('sUPI').value=upi.value||'';
+    if(qr){document.getElementById('sQR').value=qr.value||'';if(qr.value)previewQR(qr.value);}
+  }catch(e){}
+}
+function previewQR(url){const el=document.getElementById('qrPreview');el.innerHTML=url?`<img src="${url}" style="width:150px;height:150px;border-radius:10px;border:2px solid rgba(245,158,11,0.3);margin-top:7px;" onerror="this.remove()"/>`:''; }
+async function saveUPI(){
+  const v=document.getElementById('sUPI').value.trim();
+  if(!v)return showToast('UPI ID dalein.','error');
+  await sb.from('admin_settings').upsert({key:'upi_id',value:v,updated_at:new Date().toISOString()},{onConflict:'key'});
+  showToast('UPI saved!','success');
+}
+async function saveQR(){
+  const v=document.getElementById('sQR').value.trim();
+  if(!v)return showToast('QR URL dalein.','error');
+  await sb.from('admin_settings').upsert({key:'qr_code_url',value:v,updated_at:new Date().toISOString()},{onConflict:'key'});
+  previewQR(v);showToast('QR saved!','success');
+}
+async function adminLogout(){sessionStorage.removeItem('ag');sessionStorage.removeItem('at');await sb.auth.signOut();window.location.href='index.html';}
+</script>
+</body>
+</html>
