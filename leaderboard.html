@@ -117,12 +117,7 @@ async function loadLeaderboard(type,el){
   if(el)el.classList.add('active');
   const sortCol=type==='wins'?'total_wins':type==='played'?'total_played':'wallet_balance';
   const {data}=await sb.from('profiles').select('full_name,total_wins,free_fire_id').eq('is_admin',false).eq('is_blocked',false).order('total_wins',{ascending:false}).limit(3);
-  const {data}=await sb.from('profiles')
-  .select('id,full_name,free_fire_id,total_wins,total_played,wallet_balance')
-  .eq('is_admin',false)
-  .eq('is_blocked',false)
-  .order(sortCol,{ascending:false})
-  .limit(50);
+  const {data}=await sb.from('profiles').select('id,full_name,free_fire_id,total_wins,total_played,wallet_balance').eq('is_admin',false).eq('is_blocked',false).order(sortCol,{ascending:false}).limit(50);
   if(!data?.length){document.getElementById('top3Area').innerHTML='<div style="padding:20px;color:#6b7280;text-align:center;">Data nahi hai abhi.</div>';return;}
   const getVal=(p)=>type==='wins'?p.total_wins||0:type==='played'?p.total_played||0:parseFloat(p.wallet_balance||0).toFixed(0);
   const getLabel=(type)=>type==='wins'?'wins':type==='played'?'matches':'Rs.';
