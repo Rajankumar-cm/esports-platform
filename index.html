@@ -277,7 +277,7 @@ window.addEventListener('load',()=>{
           <div class="promo-overlay"><div class="promo-text"><h3>${b.title||'Join Now!'}</h3><p>Click to know more</p></div></div>
         </div>`;
     }
-    const {data:users}=await sb.from('profiles').select('id',{count:'exact'});
+   const {data:users}=await sb.from('profiles').select('id').eq('is_admin',false);
     const {data:tours}=await sb.from('tournaments').select('id',{count:'exact'});
     if(users)document.getElementById('statUsersCount').textContent=(users.length||0)+'+';
     if(tours)document.getElementById('statTournamentsCount').textContent=(tours.length||0)+'+';
