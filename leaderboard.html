@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FF Arena - Leaderboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    :root{--primary:#f59e0b;--secondary:#ef4444;--bg:#0a0a0f;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);}
+    body{background:var(--bg);color:white;font-family:'Segoe UI',sans-serif;padding-bottom:80px;}
+    .topbar{background:linear-gradient(135deg,#1a0a2e,#0d0d1a);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
+    .topbar h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .hero{background:linear-gradient(135deg,#1a0a2e,#0f172a);padding:20px 16px;text-align:center;border-bottom:1px solid var(--border);}
+    .hero h2{font-size:1.3rem;font-weight:900;margin-bottom:4px;}
+    .hero p{color:#9ca3af;font-size:0.8rem;}
+    /* TOP 3 */
+    .top3{display:flex;align-items:flex-end;justify-content:center;gap:10px;padding:20px 16px;background:linear-gradient(180deg,#1a0a2e 0%,var(--bg) 100%);}
+    .top-card{text-align:center;flex:1;max-width:110px;}
+    .top-card.first{transform:translateY(-10px);}
+    .top-avatar{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;margin:0 auto 6px;border:3px solid;}
+    .top-card.first .top-avatar{width:72px;height:72px;font-size:1.6rem;border-color:var(--primary);background:rgba(245,158,11,0.2);}
+    .top-card.second .top-avatar{border-color:#9ca3af;background:rgba(156,163,175,0.2);}
+    .top-card.third .top-avatar{border-color:#cd7f32;background:rgba(205,127,50,0.2);}
+    .top-medal{font-size:1.4rem;display:block;margin-bottom:4px;}
+    .top-name{font-size:0.78rem;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .top-wins{font-size:0.68rem;color:var(--primary);}
+    .top-card.first .top-wins{color:var(--primary);font-weight:700;}
+    /* LIST */
+    .section{padding:0 16px;}
+    .section-title{font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9ca3af;margin-bottom:12px;margin-top:16px;}
+    .leader-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:border-color 0.2s;}
+    .leader-row:hover{border-color:rgba(245,158,11,0.2);}
+    .leader-row.me{border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.05);}
+    .rank-num{width:28px;text-align:center;font-size:0.88rem;font-weight:700;color:#6b7280;flex-shrink:0;}
+    .rank-num.top{color:var(--primary);}
+    .player-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:0.9rem;font-weight:700;flex-shrink:0;}
+    .player-info{flex:1;}
+    .player-name{font-size:0.88rem;font-weight:600;margin-bottom:2px;}
+    .player-ff{font-size:0.7rem;color:#6b7280;}
+    .player-stats{text-align:right;}
+    .win-count{font-size:0.9rem;font-weight:700;color:var(--primary);}
+    .win-label{font-size:0.65rem;color:#6b7280;}
+    /* FILTER */
+    .filter-row{display:flex;gap:8px;margin:12px 16px;overflow-x:auto;}
+    .filter-row::-webkit-scrollbar{display:none;}
+    .ftab{padding:6px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:#9ca3af;font-size:0.78rem;cursor:pointer;white-space:nowrap;}
+    .ftab.active{background:var(--primary);color:black;border-color:var(--primary);font-weight:700;}
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#0d0d1a;border-top:1px solid var(--border);display:flex;z-index:200;}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 5px;color:#6b7280;font-size:0.6rem;text-decoration:none;}
+    .nav-item.active{color:var(--primary);}
+    .nav-item i{font-size:1.2rem;margin-bottom:2px;}
+    .my-rank-bar{margin:0 16px 12px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;}
+    .my-rank-bar .label{font-size:0.78rem;color:#9ca3af;}
+    .my-rank-bar .val{font-size:1rem;font-weight:700;color:var(--primary);}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1><i class="fas fa-trophy" style="margin-right:8px;color:var(--primary);"></i>Leaderboard</h1>
+  <span style="color:#9ca3af;font-size:0.78rem;">FF Arena</span>
+</div>
+
+<div class="hero">
+  <h2>🏆 Top Players</h2>
+  <p>Sabse zyada jeetne wale champions</p>
+</div>
+
+<!-- MY RANK -->
+<div class="my-rank-bar" id="myRankBar" style="display:none;">
+  <span class="label"><i class="fas fa-user" style="margin-right:6px;"></i>Meri Rank</span>
+  <span class="val" id="myRankVal">#--</span>
+</div>
+
+<!-- FILTER -->
+<div class="filter-row">
+  <button class="ftab active" onclick="loadLeaderboard('wins',this)">Most Wins</button>
+  <button class="ftab" onclick="loadLeaderboard('played',this)">Most Played</button>
+  <button class="ftab" onclick="loadLeaderboard('balance',this)">Top Earners</button>
+</div>
+
+<!-- TOP 3 -->
+<div class="top3" id="top3Area">
+  <div style="text-align:center;padding:30px;color:#6b7280;width:100%;">Loading...</div>
+</div>
+
+<!-- REST OF LIST -->
+<div class="section">
+  <div class="section-title">Full Rankings</div>
+  <div id="leaderList"></div>
+</div>
+
+<nav class="bottom-nav">
+  <a class="nav-item" href="home.html"><i class="fas fa-home"></i>Home</a>
+  <a class="nav-item" href="wallet.html"><i class="fas fa-wallet"></i>Wallet</a>
+  <a class="nav-item" href="profile.html"><i class="fas fa-user"></i>Profile</a>
+  <a class="nav-item active" href="leaderboard.html"><i class="fas fa-trophy"></i>Ranks</a>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://djohisxyahugicokwpox.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqb2hpc3h5YWh1Z2ljb2t3cG94Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNDg3MjYsImV4cCI6MjA5NTkyNDcyNn0.yw1ouxc9eIPAU_ZO1GMHUpZ4bW6ddzrwllb4GmtrVjI';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+let currentUser=null;
+
+(async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='index.html';return;}
+  currentUser=session.user;
+  await loadLeaderboard('wins',document.querySelector('.ftab.active'));
+})();
+
+async function loadLeaderboard(type,el){
+  document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  const sortCol=type==='wins'?'total_wins':type==='played'?'total_played':'wallet_balance';
+  const {data}=await sb.from('profiles').select('id,full_name,free_fire_id,total_wins,total_played,wallet_balance').order(sortCol,{ascending:false}).limit(50);
+  if(!data?.length){document.getElementById('top3Area').innerHTML='<div style="padding:20px;color:#6b7280;text-align:center;">Data nahi hai abhi.</div>';return;}
+  const getVal=(p)=>type==='wins'?p.total_wins||0:type==='played'?p.total_played||0:parseFloat(p.wallet_balance||0).toFixed(0);
+  const getLabel=(type)=>type==='wins'?'wins':type==='played'?'matches':'Rs.';
+  // My rank
+  if(currentUser){
+    const myIdx=data.findIndex(p=>p.id===currentUser.id);
+    if(myIdx>=0){
+      document.getElementById('myRankBar').style.display='flex';
+      document.getElementById('myRankVal').textContent='#'+(myIdx+1);
+    }
+  }
+  // Top 3
+  const top=data.slice(0,3);
+  const medals=['🥇','🥈','🥉'],classes=['first','second','third'];
+  const t3=[top[1],top[0],top[2]]; // 2nd, 1st, 3rd layout
+  const t3classes=['second','first','third'];
+  document.getElementById('top3Area').innerHTML=t3.map((p,i)=>{
+    if(!p)return '<div style="flex:1"></div>';
+    const realIdx=t3classes[i]==='first'?0:t3classes[i]==='second'?1:2;
+    return `<div class="top-card ${t3classes[i]}">
+      <span class="top-medal">${medals[realIdx]}</span>
+      <div class="top-avatar">${(p.full_name||'?').charAt(0).toUpperCase()}</div>
+      <div class="top-name">${p.full_name||'Player'}</div>
+      <div class="top-wins">${getVal(p)} ${getLabel(type)}</div>
+    </div>`;
+  }).join('');
+  // Rest
+  const rest=data.slice(3);
+  document.getElementById('leaderList').innerHTML=rest.map((p,i)=>{
+    const isMe=currentUser&&p.id===currentUser.id;
+    return `<div class="leader-row ${isMe?'me':''}">
+      <div class="rank-num ${i+4<=10?'top':''}">#${i+4}</div>
+      <div class="player-avatar">${(p.full_name||'?').charAt(0).toUpperCase()}</div>
+      <div class="player-info">
+        <div class="player-name">${p.full_name||'Player'}${isMe?' <span style="color:var(--primary);font-size:0.68rem;">(You)</span>':''}</div>
+        <div class="player-ff">FF: ${p.free_fire_id||'-'}</div>
+      </div>
+      <div class="player-stats">
+        <div class="win-count">${getVal(p)}</div>
+        <div class="win-label">${getLabel(type)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
