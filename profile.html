@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FF Arena - Profile</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    :root{--primary:#f59e0b;--secondary:#ef4444;--bg:#0a0a0f;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);}
+    body{background:var(--bg);color:white;font-family:'Segoe UI',sans-serif;padding-bottom:80px;}
+    .topbar{background:linear-gradient(135deg,#1a0a2e,#0d0d1a);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
+    .topbar h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    /* PROFILE HERO */
+    .profile-hero{margin:14px;background:linear-gradient(135deg,#1a0a2e,#0f172a);border:1px solid rgba(245,158,11,0.2);border-radius:20px;padding:22px;text-align:center;position:relative;overflow:hidden;}
+    .profile-hero::before{content:'';position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(245,158,11,0.08),transparent);border-radius:50%;}
+    .avatar-wrap{position:relative;display:inline-block;margin-bottom:12px;}
+    .avatar{width:80px;height:80px;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;margin:0 auto;}
+    .avatar img{width:80px;height:80px;border-radius:50%;object-fit:cover;}
+    .kyc-badge{position:absolute;bottom:0;right:0;width:24px;height:24px;background:#22c55e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;border:2px solid var(--bg);}
+    .profile-name{font-size:1.2rem;font-weight:700;margin-bottom:4px;}
+    .profile-phone{color:#9ca3af;font-size:0.82rem;margin-bottom:8px;}
+    .ff-badge{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:5px 14px;display:inline-block;color:var(--primary);font-size:0.78rem;margin-bottom:10px;}
+    .profile-badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:8px;}
+    .badge-item{background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:0.7rem;color:#9ca3af;}
+    .badge-item.earned{background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.3);color:var(--primary);}
+    /* STATS */
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 14px 14px;}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;}
+    .stat-val{font-size:1.2rem;font-weight:700;color:var(--primary);}
+    .stat-lbl{font-size:0.62rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-top:3px;}
+    /* REFERRAL */
+    .referral-card{margin:0 14px 14px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:16px;padding:16px;}
+    .referral-card h3{font-size:0.85rem;font-weight:700;color:#22c55e;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;}
+    .ref-code-box{background:rgba(0,0,0,0.3);border:1px dashed rgba(34,197,94,0.3);border-radius:10px;padding:10px;text-align:center;cursor:pointer;margin-bottom:8px;}
+    .ref-code-box .code{font-size:1.2rem;font-weight:900;color:#22c55e;letter-spacing:3px;}
+    .ref-code-box .hint{font-size:0.68rem;color:#6b7280;margin-top:3px;}
+    .ref-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .ref-stat{background:rgba(0,0,0,0.2);border-radius:8px;padding:8px;text-align:center;}
+    .ref-stat .rv{font-size:1rem;font-weight:700;color:#22c55e;}
+    .ref-stat .rl{font-size:0.68rem;color:#6b7280;}
+    .btn-share-ref{width:100%;padding:10px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:10px;color:white;font-size:0.82rem;font-weight:700;cursor:pointer;margin-top:8px;}
+    /* MENU ITEMS */
+    .menu-section{padding:0 14px;margin-bottom:14px;}
+    .menu-title{font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9ca3af;margin-bottom:10px;}
+    .menu-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color 0.2s;}
+    .menu-item:hover{border-color:rgba(245,158,11,0.3);}
+    .menu-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+    .menu-text{flex:1;}
+    .menu-text h4{font-size:0.88rem;font-weight:600;margin-bottom:2px;}
+    .menu-text p{font-size:0.72rem;color:#9ca3af;}
+    .menu-arrow{color:#6b7280;font-size:0.8rem;}
+    /* MATCH HISTORY */
+    .history-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+    .hi-title{font-size:0.85rem;font-weight:600;margin-bottom:3px;}
+    .hi-meta{font-size:0.72rem;color:#9ca3af;}
+    .hi-result{text-align:right;}
+    .hi-pos{font-size:0.88rem;font-weight:700;}
+    .hi-prize{font-size:0.75rem;color:#22c55e;}
+    /* MODAL */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;align-items:flex-end;justify-content:center;}
+    .modal-overlay.show{display:flex;}
+    .modal-sheet{background:#111827;border-radius:20px 20px 0 0;padding:22px;width:100%;max-width:500px;border-top:1px solid var(--border);max-height:88vh;overflow-y:auto;}
+    .modal-sheet h3{font-size:1rem;font-weight:700;margin-bottom:14px;color:var(--primary);}
+    label{display:block;color:#9ca3af;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+    .form-group{margin-bottom:12px;}
+    input{width:100%;padding:11px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:11px;color:white;font-size:0.9rem;outline:none;}
+    input:focus{border-color:var(--primary);}
+    .btn-save{width:100%;padding:13px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;border-radius:12px;color:white;font-weight:700;font-size:0.95rem;cursor:pointer;margin-top:8px;}
+    .btn-close{width:100%;padding:11px;background:transparent;border:1px solid var(--border);border-radius:12px;color:#9ca3af;font-size:0.88rem;cursor:pointer;margin-top:8px;}
+    .btn-logout{width:calc(100% - 28px);margin:0 14px 14px;padding:14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:14px;color:var(--secondary);font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#0d0d1a;border-top:1px solid var(--border);display:flex;z-index:200;}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 5px;color:#6b7280;font-size:0.6rem;text-decoration:none;}
+    .nav-item.active{color:var(--primary);}
+    .nav-item i{font-size:1.2rem;margin-bottom:2px;}
+    .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1f2937;border:1px solid var(--border);border-radius:12px;padding:10px 18px;font-size:0.85rem;z-index:500;display:none;white-space:nowrap;max-width:90vw;}
+    .toast.show{display:block;}
+    .toast.success{border-color:#22c55e;color:#86efac;}
+    .toast.error{border-color:var(--secondary);color:#fca5a5;}
+    .tab-row{display:flex;background:rgba(0,0,0,0.3);border-radius:12px;padding:3px;margin-bottom:14px;}
+    .ptab{flex:1;padding:8px;border:none;background:transparent;color:#6b7280;border-radius:10px;cursor:pointer;font-size:0.8rem;font-weight:600;}
+    .ptab.active{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;}
+    .tab-pane{display:none;}
+    .tab-pane.active{display:block;}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1><i class="fas fa-user" style="margin-right:8px;"></i>My Profile</h1>
+  <span style="color:#9ca3af;font-size:0.78rem;">FF Arena</span>
+</div>
+
+<!-- PROFILE HERO -->
+<div class="profile-hero">
+  <div class="avatar-wrap">
+    <div class="avatar" id="avatarEl">R</div>
+    <div class="kyc-badge" id="kycBadge" style="display:none;"><i class="fas fa-check"></i></div>
+  </div>
+  <div class="profile-name" id="pName">Loading...</div>
+  <div class="profile-phone" id="pPhone">-</div>
+  <div class="ff-badge">FF ID: <span id="pFFID">-</span></div>
+  <div class="profile-badges" id="badgesRow"></div>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-card"><div class="stat-val">Rs.<span id="statBal">0</span></div><div class="stat-lbl">Balance</div></div>
+  <div class="stat-card"><div class="stat-val" id="statPlayed">0</div><div class="stat-lbl">Played</div></div>
+  <div class="stat-card"><div class="stat-val" id="statWins">0</div><div class="stat-lbl">Wins</div></div>
+</div>
+
+<!-- REFERRAL CARD -->
+<div class="referral-card">
+  <h3><i class="fas fa-users" style="margin-right:6px;"></i>Refer & Earn</h3>
+  <div class="ref-code-box" onclick="copyRefCode()">
+    <div class="code" id="refCode">------</div>
+    <div class="hint"><i class="fas fa-copy"></i> Tap to copy referral code</div>
+  </div>
+  <div class="ref-stats">
+    <div class="ref-stat"><div class="rv" id="refCount">0</div><div class="rl">Total Referrals</div></div>
+    <div class="ref-stat"><div class="rv">Rs.20</div><div class="rl">Per Referral</div></div>
+  </div>
+  <button class="btn-share-ref" onclick="shareRef()">
+    <i class="fas fa-share-alt"></i> Share Referral Link
+  </button>
+</div>
+
+<!-- TABS -->
+<div class="menu-section">
+  <div class="tab-row">
+    <button class="ptab active" onclick="switchPTab('info',this)">Info</button>
+    <button class="ptab" onclick="switchPTab('history',this)">Match History</button>
+  </div>
+
+  <!-- INFO TAB -->
+  <div class="tab-pane active" id="pane-info">
+    <div class="menu-title">Account</div>
+    <div class="menu-item" onclick="openEditProfile()">
+      <div class="menu-icon" style="background:rgba(245,158,11,0.1);color:var(--primary);"><i class="fas fa-edit"></i></div>
+      <div class="menu-text"><h4>Edit Profile</h4><p>Naam aur FF ID update karein</p></div>
+      <i class="fas fa-chevron-right menu-arrow"></i>
+    </div>
+    <div class="menu-item" onclick="openChangePassword()">
+      <div class="menu-icon" style="background:rgba(59,130,246,0.1);color:#3b82f6;"><i class="fas fa-lock"></i></div>
+      <div class="menu-text"><h4>Change Password</h4><p>Security ke liye password badlein</p></div>
+      <i class="fas fa-chevron-right menu-arrow"></i>
+    </div>
+    <div class="menu-item" onclick="window.location.href='wallet.html'">
+      <div class="menu-icon" style="background:rgba(34,197,94,0.1);color:#22c55e;"><i class="fas fa-wallet"></i></div>
+      <div class="menu-text"><h4>My Wallet</h4><p>Balance aur transactions dekho</p></div>
+      <i class="fas fa-chevron-right menu-arrow"></i>
+    </div>
+    <div class="menu-item" onclick="window.location.href='leaderboard.html'">
+      <div class="menu-icon" style="background:rgba(168,85,247,0.1);color:#a855f7;"><i class="fas fa-trophy"></i></div>
+      <div class="menu-text"><h4>Leaderboard</h4><p>Top players ki ranking dekho</p></div>
+      <i class="fas fa-chevron-right menu-arrow"></i>
+    </div>
+    <div class="menu-title" style="margin-top:16px;">Account Details</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+      <div style="display:flex;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);">
+        <span style="color:#9ca3af;font-size:0.82rem;">Full Name</span><span style="font-size:0.82rem;font-weight:600;" id="dName">-</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);">
+        <span style="color:#9ca3af;font-size:0.82rem;">Phone</span><span style="font-size:0.82rem;font-weight:600;" id="dPhone">-</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);">
+        <span style="color:#9ca3af;font-size:0.82rem;">Free Fire ID</span><span style="font-size:0.82rem;font-weight:600;" id="dFFID">-</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);">
+        <span style="color:#9ca3af;font-size:0.82rem;">Member Since</span><span style="font-size:0.82rem;font-weight:600;" id="dJoined">-</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:12px 14px;">
+        <span style="color:#9ca3af;font-size:0.82rem;">KYC Status</span><span style="font-size:0.82rem;font-weight:600;" id="dKYC">-</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div class="tab-pane" id="pane-history">
+    <div id="matchHistory"><div style="text-align:center;padding:30px;color:#6b7280;">Loading...</div></div>
+  </div>
+</div>
+
+<button class="btn-logout" onclick="handleLogout()">
+  <i class="fas fa-sign-out-alt"></i> Logout
+</button>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-sheet">
+    <h3><i class="fas fa-edit"></i> Edit Profile</h3>
+    <div class="form-group"><label>Full Name</label><input type="text" id="editName" placeholder="Apna naam"/></div>
+    <div class="form-group"><label>Free Fire ID</label><input type="text" id="editFFID" placeholder="In-game ID"/></div>
+    <button class="btn-save" onclick="saveProfile()"><i class="fas fa-save"></i> Save Changes</button>
+    <button class="btn-close" onclick="document.getElementById('editModal').classList.remove('show')">Cancel</button>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-overlay" id="pwdModal">
+  <div class="modal-sheet">
+    <h3><i class="fas fa-lock"></i> Change Password</h3>
+    <div class="form-group"><label>New Password</label><input type="password" id="newPwd" placeholder="Min 6 characters"/></div>
+    <div class="form-group"><label>Confirm Password</label><input type="password" id="confirmPwd" placeholder="Dobara dalein"/></div>
+    <button class="btn-save" onclick="changePassword()"><i class="fas fa-key"></i> Update Password</button>
+    <button class="btn-close" onclick="document.getElementById('pwdModal').classList.remove('show')">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<nav class="bottom-nav">
+  <a class="nav-item" href="home.html"><i class="fas fa-home"></i>Home</a>
+  <a class="nav-item" href="wallet.html"><i class="fas fa-wallet"></i>Wallet</a>
+  <a class="nav-item active" href="profile.html"><i class="fas fa-user"></i>Profile</a>
+  <a class="nav-item" href="leaderboard.html"><i class="fas fa-trophy"></i>Ranks</a>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://djohisxyahugicokwpox.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqb2hpc3h5YWh1Z2ljb2t3cG94Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNDg3MjYsImV4cCI6MjA5NTkyNDcyNn0.yw1ouxc9eIPAU_ZO1GMHUpZ4bW6ddzrwllb4GmtrVjI';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+let currentUser=null,userProfile=null;
+
+(async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='index.html';return;}
+  currentUser=session.user;
+  const {data:p}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
+  if(!p||p.is_blocked){await sb.auth.signOut();window.location.href='index.html';return;}
+  userProfile=p;
+  // Fill profile
+  const initials=(p.full_name||'U').charAt(0).toUpperCase();
+  document.getElementById('avatarEl').textContent=initials;
+  document.getElementById('pName').textContent=p.full_name||'User';
+  document.getElementById('pPhone').textContent=p.phone||'-';
+  document.getElementById('pFFID').textContent=p.free_fire_id||'-';
+  document.getElementById('dName').textContent=p.full_name||'-';
+  document.getElementById('dPhone').textContent=p.phone||'-';
+  document.getElementById('dFFID').textContent=p.free_fire_id||'-';
+  document.getElementById('dJoined').textContent=new Date(p.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('statBal').textContent=parseFloat(p.wallet_balance||0).toFixed(0);
+  document.getElementById('refCode').textContent=p.referral_code||'------';
+  // KYC
+  const kycColors={pending:'color:#f59e0b',verified:'color:#22c55e',rejected:'color:#ef4444'};
+  document.getElementById('dKYC').innerHTML=`<span style="${kycColors[p.kyc_status]||''}">${p.kyc_status||'Not Submitted'}</span>`;
+  if(p.kyc_status==='verified')document.getElementById('kycBadge').style.display='flex';
+  // Badges
+  const allBadges=['🎮 Gamer','🏆 Winner','💰 Rich','⚡ Active','🔥 Hot'];
+  const earnedBadges=p.badges||[];
+  document.getElementById('badgesRow').innerHTML=allBadges.map(b=>`<div class="badge-item ${earnedBadges.includes(b)?'earned':''}">${b}</div>`).join('');
+  // Stats
+  const {data:regs}=await sb.from('registrations').select('id').eq('user_id',currentUser.id);
+  const {data:wins}=await sb.from('winners').select('id').eq('user_id',currentUser.id);
+  document.getElementById('statPlayed').textContent=regs?.length||0;
+  document.getElementById('statWins').textContent=wins?.length||0;
+  // Referral count
+  const {data:refs}=await sb.from('profiles').select('id').eq('referred_by',p.referral_code||'');
+  document.getElementById('refCount').textContent=refs?.length||0;
+  // Edit form prefill
+  document.getElementById('editName').value=p.full_name||'';
+  document.getElementById('editFFID').value=p.free_fire_id||'';
+  // Load match history
+  loadMatchHistory();
+})();
+
+async function loadMatchHistory(){
+  const {data:regs}=await sb.from('registrations').select('*,tournaments(title,map_name,mode,match_date,status)').eq('user_id',currentUser.id).order('registered_at',{ascending:false}).limit(20);
+  const {data:wins}=await sb.from('winners').select('tournament_id,position,prize_amount').eq('user_id',currentUser.id);
+  const winMap={};
+  (wins||[]).forEach(w=>{winMap[w.tournament_id]={pos:w.position,prize:w.prize_amount};});
+  const el=document.getElementById('matchHistory');
+  if(!regs?.length){el.innerHTML='<div style="text-align:center;padding:30px;color:#6b7280;"><i class="fas fa-gamepad" style="font-size:2rem;display:block;margin-bottom:8px;"></i>Koi match history nahi.</div>';return;}
+  el.innerHTML=regs.map(r=>{
+    const t=r.tournaments;
+    if(!t)return '';
+    const w=winMap[r.tournament_id];
+    const date=new Date(t.match_date).toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+    return `<div class="history-item">
+      <div>
+        <div class="hi-title">${t.title}</div>
+        <div class="hi-meta">${t.map_name} • ${t.mode} • ${date}</div>
+      </div>
+      <div class="hi-result">
+        ${w?`<div class="hi-pos" style="color:var(--primary);">#${w.pos} Place</div><div class="hi-prize">+Rs.${w.prize}</div>`
+           :`<div class="hi-pos" style="color:#6b7280;">${t.status==='completed'?'Participated':'Joined'}</div>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function switchPTab(tab,el){
+  document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('pane-'+tab).classList.add('active');
+}
+
+function copyRefCode(){
+  const code=document.getElementById('refCode').textContent;
+  navigator.clipboard.writeText(code).then(()=>showToast('Referral code copied!','success'));
+}
+
+function shareRef(){
+  const code=userProfile?.referral_code||'';
+  const url=window.location.origin+'/index.html?ref='+code;
+  const msg=`FF Arena pe join karo aur tournaments khelo!\nMera referral code: ${code}\n${url}`;
+  if(navigator.share){navigator.share({title:'FF Arena',text:msg});}
+  else{navigator.clipboard.writeText(msg);showToast('Referral link copied!','success');}
+}
+
+function openEditProfile(){document.getElementById('editModal').classList.add('show');}
+function openChangePassword(){document.getElementById('pwdModal').classList.add('show');}
+
+async function saveProfile(){
+  const name=document.getElementById('editName').value.trim();
+  const ffid=document.getElementById('editFFID').value.trim();
+  if(!name)return showToast('Naam dalein.','error');
+  if(!ffid)return showToast('FF ID dalein.','error');
+  try{
+    await sb.from('profiles').update({full_name:name,free_fire_id:ffid}).eq('id',currentUser.id);
+    document.getElementById('pName').textContent=name;
+    document.getElementById('dName').textContent=name;
+    document.getElementById('dFFID').textContent=ffid;
+    document.getElementById('pFFID').textContent=ffid;
+    document.getElementById('avatarEl').textContent=name.charAt(0).toUpperCase();
+    showToast('Profile update ho gaya!','success');
+    document.getElementById('editModal').classList.remove('show');
+  }catch(e){showToast('Error: '+e.message,'error');}
+}
+
+async function changePassword(){
+  const pwd=document.getElementById('newPwd').value;
+  const confirm=document.getElementById('confirmPwd').value;
+  if(pwd.length<6)return showToast('Password 6+ characters ka hona chahiye.','error');
+  if(pwd!==confirm)return showToast('Passwords match nahi kar rahe.','error');
+  try{
+    const {error}=await sb.auth.updateUser({password:pwd});
+    if(error)throw error;
+    showToast('Password update ho gaya!','success');
+    document.getElementById('pwdModal').classList.remove('show');
+    document.getElementById('newPwd').value='';
+    document.getElementById('confirmPwd').value='';
+  }catch(e){showToast('Error: '+e.message,'error');}
+}
+
+async function handleLogout(){
+  await sb.auth.signOut();
+  window.location.href='index.html';
+}
+
+function showToast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+</script>
+</body>
+</html>
