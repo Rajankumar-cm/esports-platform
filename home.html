@@ -305,7 +305,7 @@ async function loadStats(){
 }
 
 async function loadLeaderboard(){
-  const {data}=await sb.from('profiles').select('full_name,total_wins,free_fire_id').order('total_wins',{ascending:false}).limit(3);
+ const {data}=await sb.from('profiles').select('full_name,total_wins,free_fire_id').eq('is_admin',false).eq('is_blocked',false).order('total_wins',{ascending:false}).limit(3);
   if(!data?.length)return;
   const area=document.getElementById('leaderArea');
   area.style.display='block';
