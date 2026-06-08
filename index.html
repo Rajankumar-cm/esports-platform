@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FF Arena - Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    :root{--primary:#f59e0b;--secondary:#ef4444;--bg:#0a0a0f;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);}
+    body{min-height:100vh;background:var(--bg);background-image:radial-gradient(ellipse at top,#1a0a2e 0%,#0a0a0f 60%);display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif;}
+    /* ANNOUNCEMENT BAR */
+    .announce-bar{background:linear-gradient(135deg,var(--primary),var(--secondary));padding:8px 20px;text-align:center;font-size:0.78rem;font-weight:600;color:white;letter-spacing:0.5px;cursor:pointer;}
+    .announce-bar i{margin-right:6px;}
+    /* HEADER */
+    .header{padding:20px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);}
+    .logo-wrap{text-align:center;}
+    .logo-wrap h1{font-size:2.2rem;font-weight:900;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px;}
+    .logo-wrap p{color:#6b7280;font-size:0.8rem;letter-spacing:3px;text-transform:uppercase;margin-top:4px;}
+    .logo-img{width:60px;height:60px;border-radius:50%;object-fit:cover;margin-bottom:8px;border:2px solid var(--primary);}
+    /* PROMO BANNER */
+    .promo-banner{margin:15px;border-radius:16px;overflow:hidden;position:relative;cursor:pointer;}
+    .promo-banner img{width:100%;height:140px;object-fit:cover;display:block;}
+    .promo-banner .promo-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,0.7),transparent);display:flex;align-items:center;padding:20px;}
+    .promo-banner .promo-text h3{color:white;font-size:1rem;font-weight:700;margin-bottom:4px;}
+    .promo-banner .promo-text p{color:rgba(255,255,255,0.8);font-size:0.75rem;}
+    .promo-banner-placeholder{margin:15px;border-radius:16px;background:linear-gradient(135deg,#1a0a2e,#0f1729);padding:20px;text-align:center;border:1px solid rgba(245,158,11,0.2);}
+    .promo-banner-placeholder h3{color:var(--primary);font-size:1rem;margin-bottom:4px;}
+    .promo-banner-placeholder p{color:#6b7280;font-size:0.78rem;}
+    /* STATS BAR */
+    .stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:0 15px 15px;border-radius:12px;overflow:hidden;}
+    .stat-item{background:#0d0d1a;padding:12px;text-align:center;}
+    .stat-item .val{font-size:1.1rem;font-weight:700;color:var(--primary);}
+    .stat-item .lbl{font-size:0.65rem;color:#6b7280;text-transform:uppercase;letter-spacing:1px;}
+    /* MAIN CARD */
+    .main-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:0 20px 20px;}
+    .card{width:100%;max-width:420px;}
+    .auth-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:25px;backdrop-filter:blur(20px);}
+    .tabs{display:flex;background:rgba(0,0,0,0.3);border-radius:12px;padding:4px;margin-bottom:22px;}
+    .tab-btn{flex:1;padding:10px;border:none;background:transparent;color:#6b7280;border-radius:10px;cursor:pointer;font-size:0.9rem;font-weight:600;transition:all 0.3s;}
+    .tab-btn.active{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;}
+    .form-group{margin-bottom:16px;}
+    label{display:block;color:#9ca3af;font-size:0.78rem;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;}
+    input[type="text"],input[type="password"],input[type="tel"],input[type="email"]{width:100%;padding:12px 16px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:12px;color:white;font-size:0.9rem;outline:none;transition:border-color 0.3s;}
+    input:focus{border-color:var(--primary);}
+    .disclaimer{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:10px 12px;margin-top:8px;color:#fca5a5;font-size:0.76rem;line-height:1.5;}
+    .checkbox-group{display:flex;align-items:flex-start;gap:10px;margin-bottom:18px;}
+    .checkbox-group input[type="checkbox"]{width:18px;height:18px;margin-top:2px;accent-color:var(--primary);flex-shrink:0;}
+    .checkbox-group label{color:#9ca3af;font-size:0.78rem;text-transform:none;letter-spacing:0;line-height:1.5;}
+    .checkbox-group label a{color:var(--primary);text-decoration:none;}
+    .referral-box{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:10px;padding:10px 12px;margin-bottom:16px;font-size:0.78rem;color:#86efac;display:none;}
+    .referral-box i{margin-right:6px;color:#22c55e;}
+    .btn-primary{width:100%;padding:14px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;border-radius:12px;color:white;font-size:1rem;font-weight:700;cursor:pointer;letter-spacing:1px;transition:opacity 0.3s;}
+    .btn-primary:hover{opacity:0.9;}
+    .btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+    .alert{padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:0.85rem;display:none;}
+    .alert.error{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;}
+    .alert.success{background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:#86efac;}
+    .form-section{display:none;}
+    .form-section.active{display:block;}
+    /* MODAL */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;padding:20px;}
+    .modal-overlay.show{display:flex;}
+    .modal{background:#111827;border:1px solid var(--border);border-radius:20px;padding:25px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;}
+    .modal h2{color:var(--primary);margin-bottom:15px;font-size:1.1rem;}
+    .modal p,.modal li{color:#9ca3af;font-size:0.82rem;line-height:1.7;margin-bottom:6px;}
+    .modal li{margin-left:15px;}
+    .modal-close{width:100%;margin-top:18px;padding:12px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;}
+    /* FOOTER */
+    .footer{padding:20px;border-top:1px solid var(--border);text-align:center;}
+    .footer-links{display:flex;justify-content:center;gap:20px;margin-bottom:10px;flex-wrap:wrap;}
+    .footer-links a{color:#6b7280;font-size:0.78rem;text-decoration:none;transition:color 0.2s;}
+    .footer-links a:hover{color:var(--primary);}
+    .social-links{display:flex;justify-content:center;gap:15px;margin-bottom:10px;}
+    .social-links a{width:34px;height:34px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:#9ca3af;text-decoration:none;font-size:0.9rem;transition:all 0.2s;}
+    .social-links a:hover{border-color:var(--primary);color:var(--primary);}
+    .footer-copy{color:#374151;font-size:0.72rem;}
+    /* SPLASH */
+    .splash{position:fixed;inset:0;background:#0a0a0f;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s;}
+    .splash.hide{opacity:0;pointer-events:none;}
+    .splash h1{font-size:2.5rem;font-weight:900;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px;margin-bottom:8px;}
+    .splash p{color:#6b7280;letter-spacing:3px;font-size:0.8rem;text-transform:uppercase;}
+    .splash-loader{width:60px;height:4px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;margin-top:30px;}
+    .splash-loader-fill{height:100%;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:4px;animation:load 1.5s ease-in-out forwards;}
+    @keyframes load{from{width:0}to{width:100%}}
+  </style>
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div class="splash" id="splash">
+  <h1>⚡ FF ARENA</h1>
+  <p>Tournament Platform</p>
+  <div class="splash-loader"><div class="splash-loader-fill"></div></div>
+</div>
+
+<!-- ANNOUNCEMENT BAR -->
+<div class="announce-bar" onclick="window.open('YOUR_TELEGRAM_LINK','_blank')">
+  <i class="fas fa-bullhorn"></i> Join our Telegram for tournament updates & offers! Click here
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo-wrap">
+    <h1>⚡ FF ARENA</h1>
+    <p>India's #1 Tournament Platform</p>
+  </div>
+</div>
+
+<!-- PROMO BANNER -->
+<div class="promo-banner-placeholder" onclick="window.open('YOUR_PROMO_LINK','_blank')" id="promoBannerArea">
+  <h3>🏆 Win Big Every Day!</h3>
+  <p>Free Fire • BGMI • COD Mobile tournaments with cash prizes</p>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item"><div class="val" id="statUsersCount">500+</div><div class="lbl">Players</div></div>
+  <div class="stat-item"><div class="val" id="statTournamentsCount">50+</div><div class="lbl">Matches</div></div>
+  <div class="stat-item"><div class="val">₹10L+</div><div class="lbl">Distributed</div></div>
+</div>
+
+<!-- MAIN AUTH CARD -->
+<div class="main-wrap">
+  <div class="card">
+    <div class="auth-card">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+        <button class="tab-btn" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+      <div id="alertBox" class="alert"></div>
+
+      <!-- LOGIN -->
+      <div id="loginSection" class="form-section active">
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" id="loginPhone" placeholder="10-digit number" maxlength="10"/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="Enter password" onkeydown="if(event.key==='Enter')handleLogin()"/>
+        </div>
+        <button class="btn-primary" onclick="handleLogin()" id="loginBtn">
+          <i class="fas fa-sign-in-alt"></i> LOGIN
+        </button>
+      </div>
+
+      <!-- SIGNUP -->
+      <div id="signupSection" class="form-section">
+        <div id="referralNotice" class="referral-box">
+          <i class="fas fa-gift"></i> Referral code applied! Signup karne par bonus milega.
+        </div>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="signupName" placeholder="Apna naam dalein"/>
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" id="signupPhone" placeholder="10-digit number" maxlength="10"/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="signupPassword" placeholder="Min 6 characters"/>
+        </div>
+        <div class="form-group">
+          <label>Free Fire ID</label>
+          <input type="text" id="signupFFID" placeholder="In-game ID dalein"/>
+          <div class="disclaimer">
+            <i class="fas fa-exclamation-triangle"></i> Sahi Free Fire ID dalein. Galat ID par prize nahi milega aur account ban ho sakta hai.
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Referral Code (Optional)</label>
+          <input type="text" id="referralCode" placeholder="Kisi ka referral code hai?" oninput="checkReferral(this.value)" style="text-transform:uppercase;"/>
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" id="termsCheck"/>
+          <label for="termsCheck">Maine <a href="#" onclick="openTerms(event)">Terms & Conditions</a> padh liye hain aur agree karta/karti hoon.</label>
+        </div>
+        <button class="btn-primary" onclick="handleSignup()" id="signupBtn">
+          <i class="fas fa-user-plus"></i> CREATE ACCOUNT
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="social-links">
+    <a href="YOUR_WHATSAPP_LINK" target="_blank"><i class="fab fa-whatsapp"></i></a>
+    <a href="YOUR_TELEGRAM_LINK" target="_blank"><i class="fab fa-telegram"></i></a>
+    <a href="YOUR_INSTAGRAM_LINK" target="_blank"><i class="fab fa-instagram"></i></a>
+    <a href="YOUR_YOUTUBE_LINK" target="_blank"><i class="fab fa-youtube"></i></a>
+  </div>
+  <div class="footer-links">
+    <a href="#" onclick="openTerms(event)">Terms & Conditions</a>
+    <a href="#" onclick="openPrivacy()">Privacy Policy</a>
+    <a href="YOUR_WHATSAPP_LINK" target="_blank">Contact Us</a>
+    <a href="YOUR_TELEGRAM_LINK" target="_blank">Support</a>
+  </div>
+  <div class="footer-copy">© 2024 FF Arena. All rights reserved. | India's #1 Tournament Platform</div>
+</div>
+
+<!-- TERMS MODAL -->
+<div class="modal-overlay" id="termsModal">
+  <div class="modal">
+    <h2><i class="fas fa-file-contract"></i> Terms & Conditions</h2>
+    <ol>
+      <li>Yeh platform sirf Indian users ke liye hai. Umra 13+ honi chahiye.</li>
+      <li>Ek phone number se sirf ek account. Duplicate accounts ban honge.</li>
+      <li>Sahi Free Fire ID dena zaroori hai. Galat ID par prize nahi milega.</li>
+      <li>Entry fee non-refundable hai jab tak tournament cancel na ho.</li>
+      <li>Cheating/hacking par permanent ban aur prize forfeit hoga.</li>
+      <li>Room ID/Password match se 5 min pehle diya jayega.</li>
+      <li>Withdrawal sirf registered UPI par. Processing 24-48 ghante.</li>
+      <li>KYC verification withdrawal ke liye zaroori ho sakta hai.</li>
+      <li>Admin ka decision final hoga har vivad mein.</li>
+      <li>Yeh skill-based gaming tournaments hain, gambling nahi.</li>
+      <li>Emulator, VPN, ya cheating tool ka use ban ka karan banega.</li>
+      <li>Platform kisi bhi samay services band ya modify kar sakta hai.</li>
+    </ol>
+    <button class="modal-close" onclick="closeTerms()">Samajh Gaya ✓</button>
+  </div>
+</div>
+
+<!-- PRIVACY MODAL -->
+<div class="modal-overlay" id="privacyModal">
+  <div class="modal">
+    <h2><i class="fas fa-shield-alt"></i> Privacy Policy</h2>
+    <p>FF Arena aapki privacy ki parwah karta hai. Hum sirf zaroori data collect karte hain:</p>
+    <ol>
+      <li>Phone number sirf login ke liye use hota hai.</li>
+      <li>Free Fire ID sirf tournament verification ke liye.</li>
+      <li>UPI ID sirf withdrawal processing ke liye.</li>
+      <li>Aapka data kisi third party ko share nahi kiya jaata.</li>
+      <li>Aap kabhi bhi apna account delete karne ka request kar sakte hain.</li>
+      <li>Hum cookies aur local storage use karte hain better experience ke liye.</li>
+    </ol>
+    <button class="modal-close" onclick="document.getElementById('privacyModal').classList.remove('show')">Close</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://djohisxyahugicokwpox.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqb2hpc3h5YWh1Z2ljb2t3cG94Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNDg3MjYsImV4cCI6MjA5NTkyNDcyNn0.yw1ouxc9eIPAU_ZO1GMHUpZ4bW6ddzrwllb4GmtrVjI';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+// SPLASH
+setTimeout(()=>{
+  document.getElementById('splash').classList.add('hide');
+  setTimeout(()=>document.getElementById('splash').remove(),600);
+},1800);
+
+// Check referral in URL
+window.addEventListener('load',()=>{
+  const params=new URLSearchParams(window.location.search);
+  const ref=params.get('ref');
+  if(ref){
+    document.getElementById('referralCode').value=ref.toUpperCase();
+    checkReferral(ref);
+    switchTab('signup');
+  }
+});
+
+// Load banner & stats
+(async()=>{
+  try{
+    const {data:banners}=await sb.from('site_banners').select('*').eq('is_active',true).order('sort_order');
+    if(banners?.length){
+      const b=banners[0];
+      document.getElementById('promoBannerArea').outerHTML=`
+        <div class="promo-banner" onclick="window.open('${b.link_url||'#'}','_blank')">
+          <img src="${b.image_url}" alt="Promo"/>
+          <div class="promo-overlay"><div class="promo-text"><h3>${b.title||'Join Now!'}</h3><p>Click to know more</p></div></div>
+        </div>`;
+    }
+    const {data:users}=await sb.from('profiles').select('id',{count:'exact'});
+    const {data:tours}=await sb.from('tournaments').select('id',{count:'exact'});
+    if(users)document.getElementById('statUsersCount').textContent=(users.length||0)+'+';
+    if(tours)document.getElementById('statTournamentsCount').textContent=(tours.length||0)+'+';
+  }catch(e){}
+})();
+
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.form-section').forEach(s=>s.classList.remove('active'));
+  if(tab==='login'){document.querySelectorAll('.tab-btn')[0].classList.add('active');document.getElementById('loginSection').classList.add('active');}
+  else{document.querySelectorAll('.tab-btn')[1].classList.add('active');document.getElementById('signupSection').classList.add('active');}
+  hideAlert();
+}
+
+function showAlert(msg,type){const a=document.getElementById('alertBox');a.innerHTML=msg;a.className=`alert ${type}`;a.style.display='block';}
+function hideAlert(){document.getElementById('alertBox').style.display='none';}
+function openTerms(e){if(e)e.preventDefault();document.getElementById('termsModal').classList.add('show');}
+function closeTerms(){document.getElementById('termsModal').classList.remove('show');document.getElementById('termsCheck').checked=true;}
+function openPrivacy(){document.getElementById('privacyModal').classList.add('show');}
+
+async function checkReferral(code){
+  if(code.length<6){document.getElementById('referralNotice').style.display='none';return;}
+  const {data}=await sb.from('profiles').select('id,full_name').eq('referral_code',code.toUpperCase()).single();
+  if(data){document.getElementById('referralNotice').style.display='block';document.getElementById('referralNotice').innerHTML=`<i class="fas fa-gift"></i> "${data.full_name}" ka referral! Dono ko bonus milega signup par.`;}
+  else document.getElementById('referralNotice').style.display='none';
+}
+
+async function handleLogin(){
+  const phone=document.getElementById('loginPhone').value.trim();
+  const password=document.getElementById('loginPassword').value;
+  const btn=document.getElementById('loginBtn');
+  if(!phone||phone.length!==10)return showAlert('Sahi 10-digit phone number dalein.','error');
+  if(!password)return showAlert('Password dalein.','error');
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Logging in...';
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({email:`${phone}@ffarena.in`,password});
+    if(error){showAlert('Phone ya password galat hai.','error');}
+    else{
+      const {data:profile}=await sb.from('profiles').select('is_admin,is_blocked').eq('id',data.user.id).single();
+      if(profile?.is_blocked){await sb.auth.signOut();showAlert('Account block hai. Support se contact karein.','error');}
+      else if(profile?.is_admin){window.location.href='admin.html';}
+      else{window.location.href='home.html';}
+    }
+  }catch(e){showAlert('Kuch galat hua. Dobara try karein.','error');}
+  btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-in-alt"></i> LOGIN';
+}
+
+async function handleSignup(){
+  const name=document.getElementById('signupName').value.trim();
+  const phone=document.getElementById('signupPhone').value.trim();
+  const password=document.getElementById('signupPassword').value;
+  const ffid=document.getElementById('signupFFID').value.trim();
+  const refCode=document.getElementById('referralCode').value.trim().toUpperCase();
+  const terms=document.getElementById('termsCheck').checked;
+  const btn=document.getElementById('signupBtn');
+  if(!name)return showAlert('Naam dalein.','error');
+  if(!phone||phone.length!==10||!/^\d+$/.test(phone))return showAlert('Sahi 10-digit phone dalein.','error');
+  if(password.length<6)return showAlert('Password 6+ characters ka hona chahiye.','error');
+  if(!ffid)return showAlert('Free Fire ID zaroori hai.','error');
+  if(!terms)return showAlert('Terms & Conditions accept karein.','error');
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Creating...';
+  try{
+    // Generate referral code
+    const myRefCode=Math.random().toString(36).substring(2,8).toUpperCase();
+    // Check referrer
+    let referredBy=null;
+    if(refCode){
+      const {data:refUser}=await sb.from('profiles').select('id').eq('referral_code',refCode).single();
+      if(refUser)referredBy=refCode;
+    }
+    const {data,error}=await sb.auth.signUp({
+      email:`${phone}@ffarena.in`,password,
+      options:{data:{full_name:name,free_fire_id:ffid,phone,referral_code:myRefCode,referred_by:referredBy}}
+    });
+    if(error){
+      if(error.message.includes('already registered'))showAlert('Ye phone already registered hai. Login karein.','error');
+      else showAlert('Error: '+error.message,'error');
+    }else{
+      showAlert('✅ Account ban gaya! Ab login karein.','success');
+      setTimeout(()=>switchTab('login'),2000);
+    }
+  }catch(e){showAlert('Error: '+e.message,'error');}
+  btn.disabled=false;btn.innerHTML='<i class="fas fa-user-plus"></i> CREATE ACCOUNT';
+}
+
+// PWA Install
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault();deferredPrompt=e;
+  const installBtn=document.createElement('div');
+  installBtn.style.cssText='position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:white;padding:10px 16px;border-radius:12px;font-size:0.8rem;font-weight:700;cursor:pointer;z-index:999;box-shadow:0 4px 15px rgba(0,0,0,0.3);';
+  installBtn.innerHTML='<i class="fas fa-download"></i> Install App';
+  installBtn.onclick=()=>{deferredPrompt.prompt();installBtn.remove();};
+  document.body.appendChild(installBtn);
+  setTimeout(()=>installBtn.remove(),8000);
+});
+
+(async()=>{
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(session){
+      const {data:p}=await sb.from('profiles').select('is_admin,is_blocked').eq('id',session.user.id).single();
+      if(!p?.is_blocked)window.location.href=p?.is_admin?'admin.html':'home.html';
+    }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
