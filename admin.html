@@ -457,15 +457,25 @@ function depCardHtml(t,sa=false){
   </div>`;
 }
 async function approveDeposit(txnId,uid,amt){
+  const btn=event.target;
+  if(btn.disabled)return;
+  btn.disabled=true;btn.textContent='Processing...';
   try{
+    // Check already processed
+    const {data:txn}=await sb.from('transactions').select('status,processed').eq('id',txnId).single();
+    if(txn?.status==='approved'||txn?.processed===true){
+      showToast('Already processed hai!','error');
+      document.getElementById('dep-'+txnId)?.remove();
+      return;
+    }
     const {data:p}=await sb.from('profiles').select('wallet_balance').eq('id',uid).single();
     await sb.from('profiles').update({wallet_balance:parseFloat(p.wallet_balance||0)+parseFloat(amt)}).eq('id',uid);
-    await sb.from('transactions').update({status:'approved',updated_at:new Date().toISOString()}).eq('id',txnId);
+    await sb.from('transactions').update({status:'approved',processed:true,updated_at:new Date().toISOString()}).eq('id',txnId);
     await sb.from('notifications').insert({user_id:uid,title:'Deposit Approved!',message:'Rs.'+amt+' aapke wallet mein add ho gaya.',type:'deposit'});
     document.getElementById('dep-'+txnId)?.remove();
     showToast('Approved! Rs.'+amt+' added.','success');
     const c=document.getElementById('sdDep');if(c)c.textContent=Math.max(0,(parseInt(c.textContent)||0)-1);
-  }catch(e){showToast('Error: '+e.message,'error');}
+  }catch(e){showToast('Error: '+e.message,'error');btn.disabled=false;btn.textContent='Approve';}
 }
 
 async function loadWithdrawals(){
@@ -490,24 +500,39 @@ async function loadWithdrawals(){
   }).join('');
 }
 async function approveWith(txnId,uid,amt){
+  const btn=event.target;
+  if(btn.disabled)return;
+  btn.disabled=true;btn.textContent='Processing...';
   try{
+    const {data:txn}=await sb.from('transactions').select('status,processed').eq('id',txnId).single();
+    if(txn?.status==='approved'||txn?.processed===true){
+      showToast('Already processed hai!','error');
+      document.getElementById('with-'+txnId)?.remove();
+      return;
+    }
     const {data:p}=await sb.from('profiles').select('wallet_balance').eq('id',uid).single();
     const nb=parseFloat(p.wallet_balance||0)-parseFloat(amt);
-    if(nb<0)return showToast('Insufficient balance!','error');
+    if(nb<0){showToast('Insufficient balance!','error');btn.disabled=false;btn.textContent='Approve';return;}
     await sb.from('profiles').update({wallet_balance:nb}).eq('id',uid);
-    await sb.from('transactions').update({status:'approved',updated_at:new Date().toISOString()}).eq('id',txnId);
+    await sb.from('transactions').update({status:'approved',processed:true,updated_at:new Date().toISOString()}).eq('id',txnId);
     await sb.from('notifications').insert({user_id:uid,title:'Withdrawal Approved!',message:'Rs.'+amt+' aapki UPI pe bhej diya gaya.',type:'withdrawal'});
     document.getElementById('with-'+txnId)?.remove();
     showToast('Withdrawal approved!','success');
     const c=document.getElementById('sdWith');if(c)c.textContent=Math.max(0,(parseInt(c.textContent)||0)-1);
-  }catch(e){showToast('Error: '+e.message,'error');}
+  }catch(e){showToast('Error: '+e.message,'error');btn.disabled=false;btn.textContent='Approve';}
 }
 async function rejectTxn(txnId,cardId,type){
-  await sb.from('transactions').update({status:'rejected',updated_at:new Date().toISOString()}).eq('id',txnId);
-  document.getElementById(cardId)?.remove();
-  showToast('Rejected.','error');
-  const c=document.getElementById(type==='deposit'?'sdDep':'sdWith');
-  if(c)c.textContent=Math.max(0,(parseInt(c.textContent)||0)-1);
+  const card=document.getElementById(cardId);
+  if(!card)return;
+  try{
+    const {data:txn}=await sb.from('transactions').select('status').eq('id',txnId).single();
+    if(txn?.status!=='pending'){card.remove();return;}
+    await sb.from('transactions').update({status:'rejected',processed:true,updated_at:new Date().toISOString()}).eq('id',txnId);
+    card.remove();
+    showToast('Rejected.','error');
+    const c=document.getElementById(type==='deposit'?'sdDep':'sdWith');
+    if(c)c.textContent=Math.max(0,(parseInt(c.textContent)||0)-1);
+  }catch(e){showToast('Error: '+e.message,'error');}
 }
 
 // TOURNAMENTS
@@ -605,11 +630,17 @@ function cancelTEdit(){
 async function setTStatus(id,status){await sb.from('tournaments').update({status}).eq('id',id);showToast('Status: '+status,'success');loadTours();}
 async function toggleHide(id,hide){await sb.from('tournaments').update({is_hidden:hide}).eq('id',id);showToast(hide?'Hidden!':'Visible!','success');loadTours();}
 async function deleteTour(id){
-  if(!confirm('Delete karna chahte ho?'))return;
-  await sb.from('tournaments').delete().eq('id',id);
-  showToast('Deleted.','error');loadTours();
+  if(!confirm('Is tournament ko permanently delete karna chahte ho?'))return;
+  try{
+    // Pehle related data delete karo manually (backup)
+    await sb.from('registrations').delete().eq('tournament_id',id);
+    await sb.from('winners').delete().eq('tournament_id',id);
+    const {error}=await sb.from('tournaments').delete().eq('id',id);
+    if(error)throw error;
+    showToast('Tournament deleted!','error');
+    loadTours();
+  }catch(e){showToast('Delete error: '+e.message,'error');}
 }
-
 // ROOM
 function openRoom(tId,rId='',rPass=''){selTour4Room=tId;document.getElementById('rId').value=rId;document.getElementById('rPass').value=rPass;document.getElementById('roomModal').classList.add('show');}
 async function saveRoom(){
@@ -740,16 +771,28 @@ async function sendBroadcast(){
   const title=document.getElementById('bcTitle').value.trim();
   const msg=document.getElementById('bcMsg').value.trim();
   if(!title||!msg)return showToast('Title aur message dalein.','error');
+  const btn=event.target;
+  btn.disabled=true;btn.textContent='Sending...';
   try{
-    const {data:users}=await sb.from('profiles').select('id').eq('is_blocked',false);
-    const notifs=(users||[]).map(u=>({user_id:u.id,title,message:msg,type:'general'}));
-    if(notifs.length>0){
-      for(let i=0;i<notifs.length;i+=50)await sb.from('notifications').insert(notifs.slice(i,i+50));
-    }
+    // Save broadcast record
     await sb.from('broadcast_messages').insert({title,message:msg});
-    showToast('Broadcast bhej diya to '+notifs.length+' users!','success');
-    document.getElementById('bcTitle').value='';document.getElementById('bcMsg').value='';
+    // Get all non-admin, non-blocked users
+    const {data:users}=await sb.from('profiles').select('id').eq('is_admin',false).eq('is_blocked',false);
+    if(!users?.length){showToast('Koi user nahi mila.','error');btn.disabled=false;btn.textContent='Send to All Users';return;}
+    // Insert notifications in batches of 20
+    let sent=0;
+    for(let i=0;i<users.length;i+=20){
+      const batch=users.slice(i,i+20).map(u=>({
+        user_id:u.id,title,message:msg,type:'general',is_read:false
+      }));
+      const {error}=await sb.from('notifications').insert(batch);
+      if(!error)sent+=batch.length;
+    }
+    showToast('Broadcast bhej diya! '+sent+' users ko mila.','success');
+    document.getElementById('bcTitle').value='';
+    document.getElementById('bcMsg').value='';
   }catch(e){showToast('Error: '+e.message,'error');}
+  btn.disabled=false;btn.innerHTML='<i class="fas fa-bullhorn"></i> Send to All Users';
 }
 
 // BANNERS
@@ -776,11 +819,22 @@ async function addBanner(){
   const link=document.getElementById('bnLink').value.trim();
   const order=parseInt(document.getElementById('bnOrder').value)||1;
   if(!title||!image)return showToast('Title aur image URL dalein.','error');
-  await sb.from('site_banners').insert({title,image_url:image,link_url:link,sort_order:order,is_active:true});
-  showToast('Banner add ho gaya!','success');
-  ['bnTitle','bnImage','bnLink'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('bnImgPreview').style.display='none';
-  loadBanners();
+  try{
+    // Admin ke session se insert
+    const {error}=await sb.from('site_banners').insert({
+      title,
+      image_url:image,
+      link_url:link,
+      sort_order:order,
+      is_active:true
+    });
+    if(error)throw error;
+    showToast('Banner add ho gaya!','success');
+    ['bnTitle','bnImage','bnLink'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('bnOrder').value='1';
+    document.getElementById('bnImgPreview').style.display='none';
+    loadBanners();
+  }catch(e){showToast('Banner error: '+e.message,'error');}
 }
 async function toggleBanner(id,active){await sb.from('site_banners').update({is_active:active}).eq('id',id);loadBanners();}
 async function deleteBanner(id){await sb.from('site_banners').delete().eq('id',id);showToast('Deleted.','error');loadBanners();}
