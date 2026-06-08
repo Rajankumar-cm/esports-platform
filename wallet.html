@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FF Arena - Wallet</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    :root{--primary:#f59e0b;--secondary:#ef4444;--bg:#0a0a0f;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);}
+    body{background:var(--bg);color:white;font-family:'Segoe UI',sans-serif;padding-bottom:80px;}
+    .topbar{background:linear-gradient(135deg,#1a0a2e,#0d0d1a);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+    .topbar h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    /* BALANCE CARD */
+    .balance-card{margin:14px;background:linear-gradient(135deg,#1a0a2e,#0f172a);border:1px solid rgba(245,158,11,0.25);border-radius:20px;padding:22px;text-align:center;position:relative;overflow:hidden;}
+    .balance-card::before{content:'';position:absolute;top:-50px;right:-50px;width:150px;height:150px;background:radial-gradient(circle,rgba(245,158,11,0.1),transparent);border-radius:50%;}
+    .balance-label{color:#9ca3af;font-size:0.75rem;text-transform:uppercase;letter-spacing:2px;}
+    .balance-amount{font-size:2.5rem;font-weight:900;color:var(--primary);margin:6px 0;}
+    .balance-sub{color:#6b7280;font-size:0.75rem;}
+    .balance-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px;} 
+    .btn-action{padding:14px;border:none;border-radius:16px;font-size:0.9rem;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+    .btn-deposit{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;}
+    .btn-withdraw{background:var(--card);border:1px solid var(--border);color:white;}
+    .btn-action:hover{transform:scale(1.02);}
+    /* PROMO CODE */
+    .promo-section{margin:0 14px 14px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:14px;padding:14px;}
+    .promo-section h3{font-size:0.82rem;color:#22c55e;font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;}
+    .promo-input-row{display:flex;gap:8px;}
+    .promo-input-row input{flex:1;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:10px;color:white;font-size:0.88rem;outline:none;text-transform:uppercase;}
+    .promo-input-row input:focus{border-color:#22c55e;}
+    .btn-apply-promo{padding:10px 18px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:10px;color:white;font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;}
+    /* SECTION */
+    .section{padding:0 14px;margin-bottom:16px;}
+    .section-title{font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9ca3af;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+    /* TXN */
+    .txn-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;transition:border-color 0.2s;}
+    .txn-item:hover{border-color:rgba(245,158,11,0.2);}
+    .txn-left .txn-type{font-size:0.85rem;font-weight:600;margin-bottom:3px;}
+    .txn-left .txn-date{font-size:0.7rem;color:#6b7280;}
+    .txn-left .txn-note{font-size:0.72rem;color:#9ca3af;margin-top:2px;}
+    .txn-right{text-align:right;}
+    .txn-amount{font-size:0.95rem;font-weight:700;}
+    .txn-status{font-size:0.68rem;padding:2px 8px;border-radius:6px;margin-top:3px;display:inline-block;}
+    .status-pending{background:rgba(245,158,11,0.15);color:var(--primary);}
+    .status-approved{background:rgba(34,197,94,0.15);color:#22c55e;}
+    .status-rejected{background:rgba(239,68,68,0.15);color:var(--secondary);}
+    .amount-credit{color:#22c55e;}
+    .amount-debit{color:var(--secondary);}
+    .amount-pending{color:#9ca3af;}
+    /* MODALS */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;align-items:flex-end;justify-content:center;}
+    .modal-overlay.show{display:flex;}
+    .modal-sheet{background:#111827;border-radius:20px 20px 0 0;padding:22px;width:100%;max-width:500px;border-top:1px solid var(--border);max-height:90vh;overflow-y:auto;}
+    .modal-sheet h3{font-size:1rem;font-weight:700;margin-bottom:14px;color:var(--primary);}
+    .qr-box{background:white;border-radius:14px;padding:14px;text-align:center;margin-bottom:14px;}
+    .qr-box img{width:190px;height:190px;object-fit:contain;}
+    .upi-copy-box{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:12px;text-align:center;margin-bottom:14px;cursor:pointer;}
+    .upi-copy-box p{color:#9ca3af;font-size:0.72rem;margin-bottom:4px;}
+    .upi-copy-box strong{color:var(--primary);font-size:0.95rem;}
+    .upi-copy-box span{display:block;font-size:0.68rem;color:#6b7280;margin-top:4px;}
+    .warning-box{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 12px;margin-bottom:14px;color:#fca5a5;font-size:0.76rem;line-height:1.6;}
+    .form-group{margin-bottom:12px;}
+    label{display:block;color:#9ca3af;font-size:0.76rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+    input{width:100%;padding:11px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:11px;color:white;font-size:0.9rem;outline:none;}
+    input:focus{border-color:var(--primary);}
+    .btn-submit{width:100%;padding:13px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;border-radius:12px;color:white;font-weight:700;font-size:0.95rem;cursor:pointer;margin-top:12px;}
+    .btn-close{width:100%;padding:11px;background:transparent;border:1px solid var(--border);border-radius:12px;color:#9ca3af;font-size:0.88rem;cursor:pointer;margin-top:8px;}
+    /* KYC BANNER */
+    .kyc-banner{margin:0 14px 14px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+    .kyc-banner i{font-size:1.4rem;color:#3b82f6;flex-shrink:0;}
+    .kyc-banner h4{font-size:0.82rem;font-weight:700;color:#93c5fd;margin-bottom:2px;}
+    .kyc-banner p{font-size:0.72rem;color:#6b7280;}
+    /* BOTTOM NAV */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#0d0d1a;border-top:1px solid var(--border);display:flex;z-index:200;}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 5px;color:#6b7280;font-size:0.6rem;text-decoration:none;}
+    .nav-item.active{color:var(--primary);}
+    .nav-item i{font-size:1.2rem;margin-bottom:2px;}
+    .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1f2937;border:1px solid var(--border);border-radius:12px;padding:10px 18px;font-size:0.85rem;z-index:500;display:none;white-space:nowrap;max-width:90vw;}
+    .toast.show{display:block;}
+    .toast.success{border-color:#22c55e;color:#86efac;}
+    .toast.error{border-color:var(--secondary);color:#fca5a5;}
+    .empty{text-align:center;padding:30px;color:#4b5563;font-size:0.82rem;}
+    .filter-row{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;}
+    .filter-row::-webkit-scrollbar{display:none;}
+    .ftab{padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:#9ca3af;font-size:0.75rem;cursor:pointer;white-space:nowrap;}
+    .ftab.active{background:var(--primary);color:black;border-color:var(--primary);font-weight:700;}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1><i class="fas fa-wallet" style="margin-right:8px;"></i>My Wallet</h1>
+  <span style="color:#9ca3af;font-size:0.78rem;">FF Arena</span>
+</div>
+
+<!-- BALANCE CARD -->
+<div class="balance-card">
+  <div class="balance-label">Total Balance</div>
+  <div class="balance-amount">Rs.<span id="balanceAmt">0.00</span></div>
+  <div class="balance-sub">Available for tournaments & withdrawal</div>
+</div>
+
+<!-- ACTION BUTTONS -->
+<div class="balance-actions">
+  <button class="btn-action btn-deposit" onclick="openDeposit()">
+    <i class="fas fa-plus-circle"></i> Deposit
+  </button>
+  <button class="btn-action btn-withdraw" onclick="openWithdraw()">
+    <i class="fas fa-arrow-up"></i> Withdraw
+  </button>
+</div>
+
+<!-- PROMO CODE -->
+<div class="promo-section">
+  <h3><i class="fas fa-tag" style="margin-right:6px;"></i>Promo Code</h3>
+  <div class="promo-input-row">
+    <input type="text" id="promoInput" placeholder="ENTER CODE" style="text-transform:uppercase;"/>
+    <button class="btn-apply-promo" onclick="applyPromo()">Apply</button>
+  </div>
+</div>
+
+<!-- KYC BANNER -->
+<div class="kyc-banner" id="kycBanner" onclick="openKYC()" style="display:none;">
+  <i class="fas fa-id-card"></i>
+  <div>
+    <h4>KYC Verification Required</h4>
+    <p>Withdrawal ke liye KYC complete karein. Tap here.</p>
+  </div>
+  <i class="fas fa-chevron-right" style="color:#6b7280;margin-left:auto;"></i>
+</div>
+
+<!-- TRANSACTIONS -->
+<div class="section">
+  <div class="section-title"><i class="fas fa-history" style="color:var(--primary);"></i> Transaction History</div>
+  <div class="filter-row">
+    <button class="ftab active" onclick="filterTxn('all',this)">All</button>
+    <button class="ftab" onclick="filterTxn('deposit',this)">Deposits</button>
+    <button class="ftab" onclick="filterTxn('withdrawal',this)">Withdrawals</button>
+    <button class="ftab" onclick="filterTxn('tournament_fee',this)">Tournaments</button>
+    <button class="ftab" onclick="filterTxn('prize_won',this)">Prizes</button>
+  </div>
+  <div id="txnList"><div class="empty">Loading...</div></div>
+</div>
+
+<!-- DEPOSIT MODAL -->
+<div class="modal-overlay" id="depositModal">
+  <div class="modal-sheet">
+    <h3><i class="fas fa-qrcode"></i> Deposit Money</h3>
+    <div class="warning-box">
+      <i class="fas fa-exclamation-triangle"></i> Sirf <strong>UPI / QR Code</strong> se payment karein.<br>
+      Banking, Cards, Wallets supported <strong>NAHI</strong> hain.<br>
+      Payment ke baad UTR/Transaction ID yahan dalein.
+    </div>
+    <div class="qr-box">
+      <div id="qrImage" style="text-align:center;padding:20px;color:#6b7280;font-size:0.8rem;">Loading QR...</div>
+    </div>
+    <div class="upi-copy-box" onclick="copyUPI()">
+      <p>Ya seedha UPI ID par bhejein:</p>
+      <strong id="upiIdDisplay">Loading...</strong>
+      <span><i class="fas fa-copy"></i> Tap to copy</span>
+    </div>
+    <div class="form-group">
+      <label>Transaction ID / UTR Number</label>
+      <input type="text" id="utrInput" placeholder="12-digit UTR number dalein"/>
+    </div>
+    <div class="form-group">
+      <label>Amount (Rs.)</label>
+      <input type="number" id="depositAmt" placeholder="Kitne rupaye deposit kiye" min="50"/>
+    </div>
+    <button class="btn-submit" onclick="submitDeposit()">
+      <i class="fas fa-paper-plane"></i> Submit Request
+    </button>
+    <button class="btn-close" onclick="closeDeposit()">Cancel</button>
+  </div>
+</div>
+
+<!-- WITHDRAW MODAL -->
+<div class="modal-overlay" id="withdrawModal">
+  <div class="modal-sheet">
+    <h3><i class="fas fa-arrow-up"></i> Withdraw Money</h3>
+    <div class="warning-box">
+      <i class="fas fa-clock"></i> Processing time: <strong>24-48 ghante</strong><br>
+      Minimum withdrawal: <strong>Rs. 100</strong><br>
+      Sirf registered UPI ID par payment hogi.
+    </div>
+    <div class="form-group">
+      <label>Withdraw Amount (Rs.)</label>
+      <input type="number" id="withdrawAmt" placeholder="Amount dalein" min="100"/>
+    </div>
+    <div class="form-group">
+      <label>Your UPI ID</label>
+      <input type="text" id="withdrawUPI" placeholder="yourname@upi"/>
+    </div>
+    <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;margin-bottom:12px;">
+      <div style="font-size:0.75rem;color:#9ca3af;">Available Balance</div>
+      <div style="font-size:1.1rem;font-weight:700;color:var(--primary);">Rs.<span id="availBal">0</span></div>
+    </div>
+    <button class="btn-submit" onclick="submitWithdraw()">
+      <i class="fas fa-paper-plane"></i> Apply Withdrawal
+    </button>
+    <button class="btn-close" onclick="closeWithdraw()">Cancel</button>
+  </div>
+</div>
+
+<!-- KYC MODAL -->
+<div class="modal-overlay" id="kycModal">
+  <div class="modal-sheet">
+    <h3><i class="fas fa-id-card"></i> KYC Verification</h3>
+    <p style="color:#9ca3af;font-size:0.8rem;margin-bottom:14px;">Withdrawal ke liye identity verify karni hogi. Ye ek baar ka process hai.</p>
+    <div class="form-group">
+      <label>Aadhaar Number (12 digit)</label>
+      <input type="text" id="kycAadhaar" placeholder="XXXX XXXX XXXX" maxlength="12"/>
+    </div>
+    <div class="form-group">
+      <label>PAN Number (Optional)</label>
+      <input type="text" id="kycPAN" placeholder="ABCDE1234F" style="text-transform:uppercase;" maxlength="10"/>
+    </div>
+    <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:10px;margin-bottom:12px;font-size:0.75rem;color:#93c5fd;line-height:1.5;">
+      <i class="fas fa-shield-alt"></i> Aapka data secure hai. Sirf identity verification ke liye use hoga. Kabhi share nahi kiya jayega.
+    </div>
+    <button class="btn-submit" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);" onclick="submitKYC()">
+      <i class="fas fa-check"></i> Submit KYC
+    </button>
+    <button class="btn-close" onclick="document.getElementById('kycModal').classList.remove('show')">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<nav class="bottom-nav">
+  <a class="nav-item" href="home.html"><i class="fas fa-home"></i>Home</a>
+  <a class="nav-item active" href="wallet.html"><i class="fas fa-wallet"></i>Wallet</a>
+  <a class="nav-item" href="profile.html"><i class="fas fa-user"></i>Profile</a>
+  <a class="nav-item" href="leaderboard.html"><i class="fas fa-trophy"></i>Ranks</a>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://djohisxyahugicokwpox.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqb2hpc3h5YWh1Z2ljb2t3cG94Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNDg3MjYsImV4cCI6MjA5NTkyNDcyNn0.yw1ouxc9eIPAU_ZO1GMHUpZ4bW6ddzrwllb4GmtrVjI';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+let currentUser=null,userProfile=null,allTxns=[];
+
+(async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='index.html';return;}
+  currentUser=session.user;
+  const {data:p}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
+  if(!p||p.is_blocked){await sb.auth.signOut();window.location.href='index.html';return;}
+  userProfile=p;
+  document.getElementById('balanceAmt').textContent=parseFloat(p.wallet_balance||0).toFixed(2);
+  document.getElementById('availBal').textContent=parseFloat(p.wallet_balance||0).toFixed(2);
+  if(p.kyc_status!=='verified')document.getElementById('kycBanner').style.display='flex';
+  await Promise.all([loadAdminSettings(),loadTransactions()]);
+})();
+
+async function loadAdminSettings(){
+  const {data}=await sb.from('admin_settings').select('*');
+  if(!data)return;
+  const upi=data.find(d=>d.key==='upi_id');
+  const qr=data.find(d=>d.key==='qr_code_url');
+  document.getElementById('upiIdDisplay').textContent=upi?.value||'Set karein admin panel se';
+  if(qr?.value){
+    document.getElementById('qrImage').innerHTML=`<img src="${qr.value}" style="width:190px;height:190px;border-radius:8px;" alt="QR Code" onerror="this.parentElement.innerHTML='QR load nahi hua'"/>`;
+  }else{
+    document.getElementById('qrImage').innerHTML='<div style="padding:20px;color:#6b7280;">Admin ne QR set nahi kiya hai abhi.</div>';
+  }
+}
+
+async function loadTransactions(){
+  const {data}=await sb.from('transactions').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+  allTxns=data||[];
+  renderTxns(allTxns);
+}
+
+function renderTxns(list){
+  const el=document.getElementById('txnList');
+  if(!list.length){el.innerHTML='<div class="empty"><i class="fas fa-history" style="font-size:2rem;display:block;margin-bottom:8px;"></i>Koi transaction nahi.</div>';return;}
+  const typeLabel={deposit:'Deposit',withdrawal:'Withdrawal',tournament_fee:'Tournament Fee',prize_won:'Prize Won',admin_adjustment:'Admin Bonus'};
+  const typeIcon={deposit:'fa-arrow-down',withdrawal:'fa-arrow-up',tournament_fee:'fa-gamepad',prize_won:'fa-trophy',admin_adjustment:'fa-star'};
+  el.innerHTML=list.map(t=>{
+    const isCredit=(t.type==='deposit'||t.type==='prize_won'||t.type==='admin_adjustment')&&t.status==='approved';
+    const isPending=t.status==='pending';
+    const amtClass=isPending?'amount-pending':isCredit?'amount-credit':'amount-debit';
+    const sign=isPending?'~':isCredit?'+':'-';
+    const date=new Date(t.created_at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    return `<div class="txn-item">
+      <div class="txn-left">
+        <div class="txn-type"><i class="fas ${typeIcon[t.type]||'fa-circle'}" style="color:var(--primary);margin-right:6px;"></i>${typeLabel[t.type]||t.type}</div>
+        <div class="txn-date">${date}</div>
+        ${t.utr_number?`<div class="txn-note">UTR: ${t.utr_number}</div>`:''}
+        ${t.note?`<div class="txn-note">${t.note}</div>`:''}
+      </div>
+      <div class="txn-right">
+        <div class="txn-amount ${amtClass}">${sign}Rs.${parseFloat(t.amount).toFixed(2)}</div>
+        <span class="txn-status status-${t.status}">${t.status}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterTxn(type,el){
+  document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderTxns(type==='all'?allTxns:allTxns.filter(t=>t.type===type));
+}
+
+function copyUPI(){
+  const upi=document.getElementById('upiIdDisplay').textContent;
+  navigator.clipboard.writeText(upi).then(()=>showToast('UPI ID copied!','success'));
+}
+
+function openDeposit(){document.getElementById('depositModal').classList.add('show');}
+function closeDeposit(){document.getElementById('depositModal').classList.remove('show');}
+function openWithdraw(){document.getElementById('withdrawModal').classList.add('show');}
+function closeWithdraw(){document.getElementById('withdrawModal').classList.remove('show');}
+function openKYC(){document.getElementById('kycModal').classList.add('show');}
+
+async function submitDeposit(){
+  const utr=document.getElementById('utrInput').value.trim();
+  const amt=parseFloat(document.getElementById('depositAmt').value);
+  if(!utr||utr.length<6)return showToast('Valid UTR number dalein.','error');
+  if(!amt||amt<50)return showToast('Minimum deposit Rs.50 hai.','error');
+  try{
+    await sb.from('transactions').insert({user_id:currentUser.id,type:'deposit',amount:amt,status:'pending',utr_number:utr,note:'Manual QR deposit'});
+    await sb.from('notifications').insert({user_id:currentUser.id,title:'Deposit Request Submitted',message:`Rs.${amt} ka deposit request submit ho gaya. Admin approve karega.`,type:'deposit'});
+    showToast('Request submit ho gayi! Admin approve karega.','success');
+    closeDeposit();
+    document.getElementById('utrInput').value='';
+    document.getElementById('depositAmt').value='';
+    await loadTransactions();
+  }catch(e){showToast('Error: '+e.message,'error');}
+}
+
+async function submitWithdraw(){
+  const amt=parseFloat(document.getElementById('withdrawAmt').value);
+  const upi=document.getElementById('withdrawUPI').value.trim();
+  const balance=parseFloat(userProfile?.wallet_balance||0);
+  if(!amt||amt<100)return showToast('Minimum withdrawal Rs.100 hai.','error');
+  if(amt>balance)return showToast('Balance insufficient hai.','error');
+  if(!upi||!upi.includes('@'))return showToast('Valid UPI ID dalein (example@upi).','error');
+  if(userProfile?.kyc_status!=='verified'){
+    closeWithdraw();
+    document.getElementById('kycBanner').style.display='flex';
+    return showToast('Withdrawal ke liye KYC zaroori hai!','error');
+  }
+  try{
+    await sb.from('transactions').insert({user_id:currentUser.id,type:'withdrawal',amount:amt,status:'pending',upi_id:upi,note:'Withdrawal request'});
+    await sb.from('notifications').insert({user_id:currentUser.id,title:'Withdrawal Request Submitted',message:`Rs.${amt} withdrawal request submit ho gaya. 24-48 ghante mein process hoga.`,type:'withdrawal'});
+    showToast('Withdrawal request submit ho gayi!','success');
+    closeWithdraw();
+    document.getElementById('withdrawAmt').value='';
+    document.getElementById('withdrawUPI').value='';
+    await loadTransactions();
+  }catch(e){showToast('Error: '+e.message,'error');}
+}
+
+async function applyPromo(){
+  const code=document.getElementById('promoInput').value.trim().toUpperCase();
+  if(!code)return showToast('Promo code dalein.','error');
+  try{
+    const {data:promo}=await sb.from('promo_codes').select('*').eq('code',code).eq('is_active',true).single();
+    if(!promo)return showToast('Invalid ya expired promo code.','error');
+    if(promo.expires_at&&new Date(promo.expires_at)<new Date())return showToast('Ye promo code expire ho gaya.','error');
+    if(promo.used_count>=promo.max_uses)return showToast('Ye promo code full ho gaya.','error');
+    const {data:alreadyUsed}=await sb.from('promo_code_uses').select('id').eq('code_id',promo.id).eq('user_id',currentUser.id).single();
+    if(alreadyUsed)return showToast('Ye code aap already use kar chuke hain.','error');
+    const newBal=parseFloat(userProfile.wallet_balance||0)+parseFloat(promo.bonus_amount);
+    await sb.from('profiles').update({wallet_balance:newBal}).eq('id',currentUser.id);
+    await sb.from('promo_code_uses').insert({code_id:promo.id,user_id:currentUser.id});
+    await sb.from('promo_codes').update({used_count:promo.used_count+1}).eq('id',promo.id);
+    await sb.from('transactions').insert({user_id:currentUser.id,type:'admin_adjustment',amount:promo.bonus_amount,status:'approved',note:'Promo Code: '+code});
+    userProfile.wallet_balance=newBal;
+    document.getElementById('balanceAmt').textContent=newBal.toFixed(2);
+    document.getElementById('promoInput').value='';
+    showToast('🎉 Rs.'+promo.bonus_amount+' wallet mein add ho gaya!','success');
+    await loadTransactions();
+  }catch(e){showToast('Invalid promo code.','error');}
+}
+
+async function submitKYC(){
+  const aadhaar=document.getElementById('kycAadhaar').value.trim();
+  const pan=document.getElementById('kycPAN').value.trim().toUpperCase();
+  if(!aadhaar||aadhaar.length!==12||!/^\d+$/.test(aadhaar))return showToast('Valid 12-digit Aadhaar dalein.','error');
+  try{
+    await sb.from('kyc_requests').insert({user_id:currentUser.id,aadhaar_number:aadhaar,pan_number:pan,status:'pending'});
+    await sb.from('profiles').update({kyc_status:'pending'}).eq('id',currentUser.id);
+    showToast('KYC submit ho gaya! Admin verify karega.','success');
+    document.getElementById('kycModal').classList.remove('show');
+    document.getElementById('kycBanner').innerHTML='<i class="fas fa-clock" style="color:#f59e0b;font-size:1.4rem;flex-shrink:0;"></i><div><h4 style="color:#f59e0b;">KYC Under Review</h4><p>Admin verification kar raha hai.</p></div>';
+  }catch(e){showToast('Error: '+e.message,'error');}
+}
+
+function showToast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+</script>
+</body>
+</html>
